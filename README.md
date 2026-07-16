@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Eve Studio — website
 
-## Getting Started
+The marketing site and documentation for **[Eve Studio](https://github.com/ianborders/eve-studio)** — the desktop control center for [Eve](https://eve.dev) agents.
 
-First, run the development server:
+**Live:** [evestudio.dev](https://evestudio.dev)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This repo is intentionally separate from the [app repo](https://github.com/ianborders/eve-studio) (the Electron product, shipped as signed GitHub Releases). The site is a Next.js app deployed on Vercel and auto-deploys on push to `main`.
+
+## Stack
+
+- **[Next.js 16](https://nextjs.org)** (App Router) + **React 19**
+- **[Tailwind CSS v4](https://tailwindcss.com)** with `@tailwindcss/typography` for docs prose
+- **MDX** (`@next/mdx`) for documentation pages
+- **[Geist](https://vercel.com/font)** + **Space Mono** via `next/font`
+
+## Structure
+
+```
+app/
+  layout.tsx            # root layout: fonts, metadata, icons
+  page.tsx              # the landing page (hero, features, "Built on Eve", CTA)
+  globals.css           # theme tokens + docs code styling
+  opengraph-image.png   # social share card
+  icon.png              # favicon
+  apple-icon.png        # iOS home-screen icon
+  docs/
+    layout.tsx          # docs shell (header + sidebar + prose)
+    nav.ts              # sidebar navigation tree
+    DocsSidebar.tsx     # sidebar (active-link highlighting)
+    page.mdx            # /docs (Introduction)
+    <slug>/page.mdx     # every other docs page
+public/
+  brand/                # Eve mark assets
+  shots/                # app screenshots
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Develop
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev        # http://localhost:3000
+pnpm build      # production build
+pnpm start      # serve the production build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Writing docs
 
-## Learn More
+Each documentation page is one MDX file. To add a page:
 
-To learn more about Next.js, take a look at the following resources:
+1. Create `app/docs/<slug>/page.mdx`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```mdx
+   export const metadata = {
+     title: "<Title> — Eve Studio Docs",
+     description: "<one sentence>",
+   };
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   # <Title>
 
-## Deploy on Vercel
+   Content…
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. Add it to the sidebar in [`app/docs/nav.ts`](app/docs/nav.ts).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Prose is styled with Tailwind Typography; fenced code blocks render dark, inline code as light pills (see `globals.css`). Cross-link other docs with plain `/docs/...` links.
+
+## Deploy
+
+The Vercel project is connected to this repo, so **any push to `main` deploys to production** ([evestudio.dev](https://evestudio.dev)); pull requests get preview URLs. No manual CLI step needed.
+
+## License
+
+MIT.

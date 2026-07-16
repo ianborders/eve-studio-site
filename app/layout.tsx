@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Space_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -23,21 +23,39 @@ const description =
   "A native desktop app to run, chat with, build, wire up, and deploy every Eve agent on your Mac — no terminal, ever.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://evestudio.dev"),
   title,
   description,
-  metadataBase: new URL(
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "http://localhost:3000",
-  ),
+  applicationName: "Eve Studio",
+  keywords: [
+    "Eve",
+    "Eve agents",
+    "AI agents",
+    "agent framework",
+    "Vercel",
+    "desktop app",
+    "macOS",
+  ],
+  authors: [{ name: "Kybernesis" }],
+  alternates: { canonical: "/" },
+  // app/icon.png, app/apple-icon.png, app/favicon.ico, and app/opengraph-image.png
+  // are picked up automatically by Next's file conventions.
   openGraph: {
     title,
     description,
+    url: "https://evestudio.dev",
+    siteName: "Eve Studio",
     type: "website",
-    images: ["/shots/chat.png"],
   },
-  twitter: { card: "summary_large_image", title, description },
-  icons: { icon: "/brand/icon.png" },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
