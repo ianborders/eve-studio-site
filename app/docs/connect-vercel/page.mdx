@@ -1,0 +1,35 @@
+export const metadata = {
+  title: "Connect to Vercel — Eve Studio Docs",
+  description:
+    "Why an Eve agent needs a Vercel credential, and how Studio signs you in and pulls the AI Gateway token for you.",
+};
+
+# Connect to Vercel
+
+Before an agent can reply, it needs a model credential. Studio walks you through getting one from Vercel — no keys to copy, no CLI to install.
+
+## Why it's needed
+
+An Eve agent's default model routes through the **Vercel AI Gateway**. The Gateway is what actually calls the model provider, so the agent needs a credential proving it's allowed to use it. Studio obtains a **`VERCEL_OIDC_TOKEN`** — a short-lived token tied to a linked Vercel project — and writes it to the agent's `.env.local`.
+
+Until that credential exists, the model can't run. In **Chat**, an agent with no credential shows a **Connect to Vercel** banner instead of replying. Clicking it starts the flow below.
+
+## The flow
+
+1. **Sign in** (if you aren't already). Studio asks for your email, then sends a verification link to your inbox. Open the link; the app **polls until it's confirmed** and continues automatically — nothing to paste back.
+2. **Pick a team.** If your Vercel account belongs to more than one team, Studio asks which one to use. With a single team it skips this step.
+3. **Link the project and pull the token.** Studio links the agent's folder to a Vercel project (`vercel link`) and pulls the environment, which includes the AI Gateway token (`vercel env pull` → `VERCEL_OIDC_TOKEN` in `.env.local`).
+
+A console shows a live "working…" spinner and an elapsed timer through the linking and pull. When it's done, the Connect banner disappears and the agent can respond.
+
+The app runs the Vercel CLI via `npx vercel@latest`, so there's nothing to install globally — the same way it provisions the Node runtime and Eve.
+
+## Alternative: an API key
+
+`VERCEL_OIDC_TOKEN` is scoped to a linked project and refreshes as needed, which is why Studio prefers it. If you'd rather use a standalone credential — for example an agent you don't want tied to a specific project — you can instead set **`AI_GATEWAY_API_KEY`** in the agent's environment. Either credential satisfies the Gateway; you don't need both. You manage environment variables from the **Deploy** tab's Environment pane.
+
+## Next
+
+- **[Chat](/docs/chat)** — talk to the agent now that the model can run.
+- **[Deploy to Vercel](/docs/deploy)** — ship the linked project to production.
+- **[The workspace](/docs/workspace)** — where the Connect banner and Environment pane live.

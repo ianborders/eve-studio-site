@@ -1,0 +1,45 @@
+export const metadata = {
+  title: "Install & setup — Eve Studio Docs",
+  description:
+    "Download Eve Studio, what happens on first launch, and how the app sets up a runtime and Eve for you — no terminal.",
+};
+
+# Install & setup
+
+Eve Studio is a native macOS app. You download it, open it, and start working — the app provisions the runtime and installs [Eve](https://eve.dev) for you. You never open a terminal.
+
+## Download
+
+Grab the latest build from GitHub Releases:
+
+- **[github.com/ianborders/eve-studio/releases/latest](https://github.com/ianborders/eve-studio/releases/latest)**
+
+Download the `.dmg`, open it, and drag **Eve Studio** into `Applications`. The first time you open it, macOS asks you to confirm launching an app downloaded from the internet — approve it and continue.
+
+## First launch
+
+On first launch the app checks your machine for the two things an Eve agent needs to run, and fills in whatever is missing:
+
+- **A Node runtime.** Eve requires **Node 24 or newer**. If the app can't find a suitable Node, it downloads and provisions its own Node 24 runtime, isolated to the app. It does not touch a system Node or any version manager you already use.
+- **Eve itself.** The framework is installed on demand via `npx eve@latest` the first time you create or run an agent — so a fresh agent always starts on a current Eve.
+
+This is the terminal-free part: there is nothing to `brew install`, no PATH to edit, no global packages to manage. The app handles it and shows a live "working…" spinner with an elapsed timer while it does. Because Eve and its dependencies download on first use, that first run takes a minute; later runs reuse what's already there.
+
+## Add an agent, or create one
+
+With the runtime ready, you point Studio at an agent. There are two paths, both on the left rail:
+
+- **Add existing** — opens a folder picker. Choose the root of an Eve app you already have (the folder containing `agent/`) and Studio registers it. Nothing in the folder is changed. This is the path if you cloned a repo, followed the Eve CLI quickstart, or already build with Eve.
+- **＋ (create)** — scaffolds a brand-new agent for you. Studio runs `eve init` on the provisioned runtime and streams the log as it goes. See **[Create an agent](/docs/create-agent)** for the full flow and what gets scaffolded.
+
+Either way, once an agent is in the rail you click it to make it active and land in the workspace. See **[The workspace](/docs/workspace)** for the layout.
+
+## One more thing before the model runs
+
+An Eve agent's model routes through the Vercel AI Gateway, so the agent needs a credential before it can reply. Studio walks you through this in-app — no keys to hunt down. See **[Connect to Vercel](/docs/connect-vercel)**.
+
+## Where to go next
+
+- **[Create an agent](/docs/create-agent)** — scaffold your first agent.
+- **[Connect to Vercel](/docs/connect-vercel)** — so the model can run.
+- **[The agent, explained](/docs/concepts)** — the mental model behind every tab.

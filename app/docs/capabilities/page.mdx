@@ -1,0 +1,147 @@
+export const metadata = {
+  title: "Tools, skills & subagents — Eve Studio Docs",
+  description:
+    "The three ways to give an Eve agent capabilities, and how to create, edit, and delete each in Studio's Capabilities tab.",
+};
+
+# Tools, skills & subagents
+
+Instructions and the model decide how an agent thinks. Capabilities decide what it can *do*. Eve gives you three, each with a different job:
+
+- **Tools** — typed actions the agent calls (hit an API, run a query, write a file).
+- **Skills** — load-on-demand instructions the model pulls in only when relevant.
+- **Subagents** — specialist child agents the root agent delegates work to.
+
+Studio groups all three (plus [Hooks](/docs/hooks)) under the **Capabilities** tab, with a sub-tab for each. Every sub-tab lists the discovered items, a **New** button to scaffold one, and an in-app editor that opens the real source file when you click a row. Nothing is stored in a Studio database — the files under `agent/` *are* the capabilities.
+
+New to the folder model? Read [The agent, explained](/docs/concepts) first.
+
+## Tools
+
+A tool is a typed action, and the action stays in code you control. Tools run in the **app runtime** with full access to `process.env` — not in the sandbox — so they can read secrets, import shared `lib/` code, and call your own services.
+
+The filename is the tool name the model sees: `agent/tools/get_weather.ts` is the tool `get_weather`.
+
+```ts title="agent/tools/get_weather.ts"
+import { defineTool } from "eve/tools";
+import { z } from "zod";
+
+export default defineTool({
+  description: "Get the current weather for a city.",
+  inputSchema: z.object({ city: z.string().min(1) }),
+  async execute({ city }, ctx) {
+    return { city, condition: "Sunny", temperatureF: 72 };
+  },
+});
+```
+
+A tool definition needs:
+
+- **a filename slug** under `agent/tools/` — the model-facing name (snake_case ASCII).
+- **`description`** — what the tool does, written for the model.
+- **`inputSchema`** — a Zod schema (or any Standard/JSON Schema). Use `z.object({})` for no input.
+- **`execute(input, ctx)`** — the implementation, sync or async.
+
+### Approval: human-in-the-loop
+
+Any tool can require a person to sign off before it runs. Set `approval` with the helpers from `eve/tools/approval`:
+
+```ts title="agent/tools/refund_charge.ts"
+import { defineTool } from "eve/tools";
+import { always } from "eve/tools/approval";
+import { z } from "zod";
+
+export default defineTool({
+  description: "Refund a charge.",
+  inputSchema: z.object({ chargeId: z.string(), amount: z.number() }),
+  approval: always(),
+  async execute(input) {
+    return refund(input);
+  },
+});
+```
+
+| Helper     | Behavior                                                              |
+| ---------- | -------------------------------------------------------------------- |
+| `never()`  | Never require approval (the default when `approval` is omitted).     |
+| `once()`   | Require approval the first time in a session; auto-allow after.      |
+| `always()` | Require approval before every call.                                  |
+
+When a gated tool is called, the run **parks durably** and Studio's Chat surfaces an approval prompt; the turn resumes exactly where it left off once you approve or deny. Gate anything sensitive, irreversible, or external-side-effecting. (For input-dependent decisions you can pass a policy function instead of a helper.)
+
+### Create and edit tools in Studio
+
+**Capabilities → Tools.** The sub-tab lists every discovered tool. Click **New** to scaffold a tool file in `agent/tools/`. Click any row to open the **in-app editor** — a modal over that tool's `.ts` source — where you read, edit, and **Save**, or **Delete** the file.
+
+## Skills
+
+A skill is a procedure the model loads **on demand**, rather than carrying on every turn — progressive disclosure. Eve advertises each skill's `description` to the model and pulls the full body into context only when a request matches (or you name the skill outright). Loading a skill adds *instructions*, never a new execution surface — if you need typed runtime behavior, that's a tool.
+
+A packaged skill is a directory with a `SKILL.md` and optional sibling files:
+
+```
+agent/skills/release-notes/
+├── SKILL.md
+└── references/
+    └── checklist.md
+```
+
+```md title="agent/skills/release-notes/SKILL.md"
+---
+description: Use when the user needs a release checklist or changelog workflow.
+---
+
+Gather the merged PRs since the last tag, group them by area, and draft the
+changelog in the house voice. See references/checklist.md for the full list.
+```
+
+The `description` frontmatter is the **routing hint** — write it as the task that should trigger the skill, not as a label. A packaged `SKILL.md` must carry it; a flat single-file skill (`agent/skills/forecast.md`) can infer one from its first line but is a weaker hint. Sibling files under `references/` are read relative to the `SKILL.md`.
+
+Skills are scoped to the agent that declares them — a subagent's skills are invisible to the root, and vice versa.
+
+### Create and edit skills in Studio
+
+**Capabilities → Skills.** The sub-tab lists discovered skills. Click **New** to scaffold a `skills/<name>/SKILL.md`. Click a row to open the in-app editor on that skill's **`SKILL.md`**, where you edit the description and body and **Save**, or **Delete** the skill.
+
+## Subagents
+
+A subagent is a specialist child agent the root delegates to — use one to run independent work in parallel, narrow the tool surface, or give a task to a purpose-built role. A declared subagent lives under `agent/subagents/<id>/` and is **its own agent root**: it inherits nothing from the parent.
+
+```
+agent/subagents/research/
+├── agent.ts            # required — must export a description
+├── instructions.md     # optional, its own system prompt
+├── tools/              # optional, its own tools
+├── skills/             # optional, its own skills
+└── hooks/              # optional, its own hooks
+```
+
+```ts title="agent/subagents/research/agent.ts"
+import { defineAgent } from "eve";
+
+export default defineAgent({
+  description: "Investigate ambiguous questions before the parent responds.",
+  model: "anthropic/claude-opus-4.8",
+});
+```
+
+The **`description` is required** — the parent reads it to decide whether to delegate, and the build fails without it. The subagent's directory name is its tool name (`research`), which the parent calls with a `message` (the child never sees the parent's history). Because it's a separate agent root, anything the child needs — instructions, tools, skills, hooks — must live under its own directory. Schedules and channels are root-only and can't be declared inside a subagent.
+
+Reach for a subagent when the task needs a different prompt, role, or narrower tool set; reach for a **skill** when the agent can keep its identity and just needs an optional procedure.
+
+### Create and edit subagents in Studio
+
+**Capabilities → Subagents.** The sub-tab lists declared subagents. Click **New** to scaffold `subagents/<id>/` with its `agent.ts` and `instructions.md`. Click a row to open the in-app editor on **both** the subagent's `agent.ts` (model + description) and its `instructions.md` (system prompt), where you edit and **Save**, or **Delete** the subagent. A subagent's own tools, skills, and hooks are authored inside its directory the same way the root's are.
+
+## Hooks
+
+The fourth Capabilities sub-tab is **Hooks** — observe-only subscribers to the runtime event stream (audit logging, metrics, alerting). Like tools, a hook is a single `.ts` file you open in the in-app editor. They're covered on their own page.
+
+→ [Hooks](/docs/hooks)
+
+## Where to go next
+
+- **[Hooks](/docs/hooks)** — react to the runtime event stream.
+- **[Integrations](/docs/integrations)** — connections and channels.
+- **[Instructions & model](/docs/instructions)** — the always-on counterpart to skills.
+- **[The agent, explained](/docs/concepts)** — how capabilities fit the whole folder.

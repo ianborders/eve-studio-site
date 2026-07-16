@@ -1,0 +1,50 @@
+export const metadata = {
+  title: "Troubleshooting — Eve Studio Docs",
+  description:
+    "Common Eve Studio symptoms and their fixes: model, Vercel connection, agent startup, deployed chat, and capability discovery.",
+};
+
+# Troubleshooting
+
+A practical list of things that go wrong and how to fix them. Each entry is a symptom and the fix.
+
+## Quick reference
+
+| Symptom | Fix |
+| --- | --- |
+| The model won't respond | The agent has no model credential yet. Connect it to Vercel. |
+| "Multiple teams found" | Pick a team in the Connect banner. |
+| Create-agent fails on a fresh machine | Make sure you're online — the app is provisioning Node and Eve. |
+| The agent won't start | Check the dev-server logs in the Deploy tab. |
+| Deployed chat is unreachable | Paste the deployment's Protection Bypass token. |
+| A new tool or hook doesn't appear | Reload the capability list or restart the agent. |
+
+## The model won't respond
+
+An Eve agent's model routes through the Vercel AI Gateway, so it needs a credential before it can reply. If chat sends but nothing comes back — and you see a **Connect to Vercel** banner — the agent isn't linked yet. Walk the in-app flow to sign in, link the project, and pull the token. See **[Connect to Vercel](/docs/connect-vercel)**.
+
+## "Multiple teams found"
+
+This appears during the Vercel connect flow when your account belongs to more than one team, and Studio doesn't know which one owns this agent. **Pick the team in the Connect banner** and the flow continues — it runs `vercel link` and `vercel env pull` against that team.
+
+## Create-agent fails on a fresh machine
+
+On a machine that has never run Studio, the app has to **provision its own Node runtime and install Eve** (`npx eve@latest`) before it can scaffold anything. This step downloads packages, so it needs a network connection. If create-agent fails on a brand-new machine, **make sure you're online** and try again — the first run takes a minute while it fetches everything; later runs reuse what's already there. Watch the "working…" spinner and elapsed timer to confirm it's still making progress.
+
+## The agent won't start
+
+If the agent's status pill stays **stopped** or flips back after you hit Start, the local `eve dev` server failed to boot — usually a code or config error in the agent folder. **Open the [Deploy](/docs/deploy) tab and read the dev-server logs pane**, which streams that server's output and shows the actual error. Fix what it reports (often a type error or a missing environment variable) and start again.
+
+## Deployed chat is unreachable
+
+If chat works against **Local** but a **Deployed** target can't connect, the production deployment is almost certainly behind **Vercel Deployment Protection**. Generate a **Protection Bypass token** in your Vercel project settings and **paste it into Studio** so the app can authenticate to the protected URL. See **[Deploy to Vercel](/docs/deploy)**.
+
+## A new tool or hook doesn't appear
+
+Eve discovers capabilities from the filesystem, and Studio reads that discovery snapshot. If you added a tool, hook, skill, or subagent — or created one outside the app — and it isn't in the **[Capabilities](/docs/capabilities)** list, the running agent is showing a stale snapshot. **Reload the capability list, or restart the agent** (Stop then Start) so Eve re-discovers the folder. The same applies after renaming or deleting a capability file.
+
+## Still stuck?
+
+- Re-check **[Connect to Vercel](/docs/connect-vercel)** — most "nothing happens" issues trace back to a missing model credential.
+- Read the **[Deploy](/docs/deploy)** tab's command-output console and dev-server logs; the real error is usually there.
+- Confirm you're on a current build — the app installs Eve via `npx eve@latest`, so a fresh agent runs a current framework.

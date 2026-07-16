@@ -1,26 +1,81 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
+  --muted: #63666d;
+  --faint: #9a9ea6;
+  --border: #ececec;
+  --border-strong: #d7d7d5;
+  --canvas: #f7f7f6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-canvas: var(--canvas);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-spacemono: var(--font-space-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Marketing page is deterministically light (mirrors the app's aesthetic). */
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Space Mono uppercase eyebrow — the app's signature label. */
+.kicker {
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Inline code gets a light pill — but ONLY when it's not inside a <pre>. */
+.prose :not(pre) > code {
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 13px;
+  font-weight: 400;
+}
+/* Remove the default backtick quotes typography adds around inline code. */
+.prose code::before,
+.prose code::after {
+  content: "" !important;
+}
+/* Dark code blocks: readable light text, no per-line pill leaking in. */
+.prose pre {
+  color: #e6e6e6;
+}
+.prose pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Subtle dotted grid backdrop for the hero. */
+.grid-bg {
+  background-image: radial-gradient(circle, #e6e6e6 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
 }

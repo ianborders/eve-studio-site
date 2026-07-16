@@ -1,0 +1,147 @@
+export const metadata = {
+  title: "Hooks — Eve Studio Docs",
+  description:
+    "What Eve hooks are, when to use them, and a step-by-step walkthrough for building and editing one in Eve Studio.",
+};
+
+# Hooks
+
+A **hook** subscribes to your agent's runtime **event stream** and runs a side effect *after* each event is durably recorded. Hooks are **observe-only** — they watch what the agent does but cannot change the reply or inject context. Reach for one for audit trails, metrics, alerting, or persisting sessions to your own database.
+
+Hooks live in `agent/hooks/`. The file's path-relative basename is its slug: `agent/hooks/audit.ts` becomes `"audit"`, and `agent/hooks/auth/load-profile.ts` becomes `"auth/load-profile"`.
+
+## Define a hook
+
+A hook file declares subscribers under an `events` map, keyed by event type. `defineHook`, `HookDefinition`, and `HookContext` live on `eve/hooks`.
+
+```ts title="agent/hooks/audit.ts"
+import { defineHook } from "eve/hooks";
+
+export default defineHook({
+  events: {
+    "session.started"(_event, ctx) {
+      console.info("session started", { sessionId: ctx.session.id });
+    },
+    "message.completed"(event) {
+      console.info("model finished", {
+        length: event.data.message?.length ?? 0,
+      });
+    },
+  },
+});
+```
+
+Subscribe to any event in the runtime stream — including the lifecycle events `session.started`, `turn.completed`, `message.completed`, `action.result`, and `turn.failed` — or use `"*"` to match every event.
+
+## The context
+
+Every handler receives the same `HookContext`:
+
+```ts
+interface HookContext {
+  readonly agent: { readonly name: string; readonly nodeId?: string };
+  readonly channel: { readonly kind?: string; readonly continuationToken?: string };
+  readonly session: { readonly id: string };
+}
+```
+
+## Narrowing a tool result
+
+`toolResultFrom` narrows an `action.result` event to a specific authored tool (or MCP connection) and returns its typed output. Import it from `eve/tools`:
+
+```ts
+import { defineHook } from "eve/hooks";
+import { toolResultFrom } from "eve/tools";
+import getWeather from "../tools/get_weather";
+
+export default defineHook({
+  events: {
+    "action.result"(event) {
+      const weather = toolResultFrom(event.data.result, getWeather);
+      if (weather) {
+        console.log(weather.output.temperature); // typed to the tool's return
+      }
+    },
+  },
+});
+```
+
+It returns `undefined` when the result doesn't match or is an error.
+
+## Hook vs tool vs provider
+
+| Need | Use |
+| --- | --- |
+| Observe runtime events (audit, metrics, alerting) | a **hook** |
+| Provide structured input to the model on demand | a **[tool](/docs/capabilities)** |
+| Make a value available across a step | a context provider (`defineDynamic`) |
+
+Hooks run *after* an event is durably recorded, so if a hook throws, the stream stays consistent — but a thrown handler surfaces as `turn.failed`. Wrap the body in `try`/`catch` for belt-and-suspenders semantics. Subagents may carry their own `agent/hooks/`; those fire only inside the subagent's scope.
+
+## Managing hooks in Eve Studio
+
+Open your agent and go to **Capabilities → Hooks**.
+
+- **See them** — every discovered hook is listed. If a new file doesn't show, hit the reload button in the tab header.
+- **Create one** — click **New**, give it a name, and Studio scaffolds `agent/hooks/<name>.ts` with a `defineHook` stub.
+- **Edit or delete** — click any hook row to open the in-app editor. It opens the hook's source; edit and **Save**, or **Delete** to remove the file.
+
+Changes take effect the next time the agent (re)starts — hit **Stop → Start** in the header.
+
+## Walkthrough: an intake-audit hook
+
+Say your agent records what a user takes (supplements, meds) and you want an immutable, timestamped audit of every recorded intake — separate from the agent's memory. Recording is a **tool's** job; **observing** it is the hook's.
+
+**1. Add the tool.** In **Capabilities → Tools → New**, create `log_intake`, then open it and give it a real schema and return:
+
+```ts title="agent/tools/log_intake.ts"
+import { defineTool } from "eve/tools";
+import { z } from "zod";
+
+export default defineTool({
+  description: "Log a supplement/med the user took, so it can be tracked.",
+  inputSchema: z.object({
+    item: z.string(),
+    dose: z.string(),
+    route: z.enum(["oral", "subcutaneous", "topical", "other"]).default("oral"),
+  }),
+  async execute(input) {
+    return { ...input, loggedAt: new Date().toISOString() };
+  },
+});
+```
+
+**2. Add the hook.** In **Capabilities → Hooks → New**, create `intake-audit`, then open it and paste:
+
+```ts title="agent/hooks/intake-audit.ts"
+import { defineHook } from "eve/hooks";
+import { toolResultFrom } from "eve/tools";
+import logIntake from "../tools/log_intake";
+
+export default defineHook({
+  events: {
+    // After the agent logs an intake, write a durable audit line.
+    "action.result"(event, ctx) {
+      const intake = toolResultFrom(event.data.result, logIntake);
+      if (!intake) return;
+      console.info("[intake-audit]", {
+        session: ctx.session.id,
+        item: intake.output.item,
+        dose: intake.output.dose,
+        at: intake.output.loggedAt,
+      });
+    },
+    // Surface a failed turn so a tracking gap is visible.
+    "turn.failed"(_event, ctx) {
+      console.warn("[intake-audit] turn failed", { session: ctx.session.id });
+    },
+  },
+});
+```
+
+**3. Save and restart.** Save both files, then **Stop → Start** the agent. Now every time the agent calls `log_intake`, the hook observes the typed result and writes an audit line — without ever changing the conversation.
+
+## Next
+
+- [Tools, skills & subagents](/docs/capabilities) — the capabilities a hook observes.
+- [Connections & channels](/docs/integrations) — hooks can also narrow MCP connection results.

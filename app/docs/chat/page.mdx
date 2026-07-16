@@ -1,0 +1,46 @@
+export const metadata = {
+  title: "Chat — Eve Studio Docs",
+  description:
+    "Talk to an Eve agent from Studio — local dev server or production — with streamed tool calls, subagents, reasoning, and approvals.",
+};
+
+# Chat
+
+The **Chat** tab is where you talk to an agent and watch it work. It streams every step of a turn — tool calls, subagent delegations, reasoning, and approval prompts — against either your local dev server or the deployed agent.
+
+## Local vs Deployed
+
+A **Target** toggle at the top picks what you're talking to:
+
+- **Local** — the agent's local dev server (`eve dev`). This is what you use while building; it reflects your unsaved-to-production changes.
+- **Deployed** — the production deployment on Vercel. Use it to smoke-test what your users actually reach.
+
+For **Local**, the dev server must be running: hit **Start** in the per-agent header (see **[The workspace](/docs/workspace)**) and wait for the status pill to read *running*. The **Deployed** target needs a deployment to exist — see **[Deploy to Vercel](/docs/deploy)**.
+
+## What streams
+
+As the agent runs a turn, Chat renders each event live, in order:
+
+- **Turns** — the assistant's messages as they're produced.
+- **Tool calls** — each call is a **collapsible row**; expand it to see the tool's **input** and **output**.
+- **Subagent delegations** — when the agent hands work to a specialist child agent, its run appears nested so you can follow the delegation.
+- **Reasoning** — a **"thinking…"** stream showing the model's reasoning before it acts.
+- **Approval prompts** — when a tool is gated for **human-in-the-loop**, the turn pauses and asks you to approve or reject before it proceeds.
+
+## The composer and usage bar
+
+A **composer** at the bottom sends your message. Directly under it, a **usage bar** reports the **cost** and **token** count for the conversation, so you can see what a turn is spending as you go.
+
+## Threads and archiving
+
+Each conversation is a **thread** (a durable session). Threads live under the active agent in the left rail; start a new one with **＋ New chat**. Archive a thread to move it out of the sidebar without losing it, and reopen it later from the **Archived** modal — see **[The workspace](/docs/workspace)** for the rail controls.
+
+## If the agent won't reply
+
+If you see a **Connect to Vercel** banner instead of a response, the agent has no model credential yet. The model routes through the Vercel AI Gateway, so it needs one before it can run — follow **[Connect to Vercel](/docs/connect-vercel)**, then send your message again.
+
+## Next
+
+- **[Connect to Vercel](/docs/connect-vercel)** — required before the model can respond.
+- **[Deploy to Vercel](/docs/deploy)** — so the **Deployed** target has something to talk to.
+- **[The agent, explained](/docs/concepts)** — what tools, subagents, and skills are under the hood.

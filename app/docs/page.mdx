@@ -1,0 +1,49 @@
+export const metadata = {
+  title: "Introduction — Eve Studio Docs",
+  description:
+    "What Eve Studio is, what Eve is, and how the two fit together.",
+};
+
+# Eve Studio
+
+**Eve Studio is a native macOS app for operating [Eve](https://eve.dev) agents.** It runs, chats with, builds, wires up, and deploys every Eve agent on your machine — from one window, without a terminal.
+
+If you already build with Eve, Studio is a faster loop: a chat console, an editor for every capability, and one‑click deploys. If you're new to agents, Studio provisions everything for you — a runtime, the framework, and your first agent — so you can start by clicking, not configuring.
+
+## What is Eve?
+
+Eve is Vercel's framework for building agents. Its core idea: **an agent is a folder.**
+
+```
+my-agent/
+└── agent/
+    ├── instructions.md      # the system prompt
+    ├── agent.ts             # model + config
+    ├── tools/               # typed actions the agent can call
+    ├── skills/              # load-on-demand instructions
+    ├── subagents/           # specialist child agents
+    ├── hooks/               # observe the runtime event stream
+    ├── connections/         # MCP / OpenAPI integrations
+    ├── channels/            # where the agent is surfaced (Slack, web, …)
+    └── schedules/           # cron-driven jobs
+```
+
+Eve discovers everything from the filesystem — a tool at `agent/tools/get_weather.ts` *is* the tool `get_weather`. It gives your agent a durable runtime (checkpointed workflows, isolated sandboxes, model routing) and deploys as Vercel Functions. You can read the framework docs at [eve.dev](https://eve.dev); this site documents the **Studio app** and how it uses each Eve concept.
+
+## What Studio adds
+
+- **Chat** — talk to an agent's local dev server or its production deployment, with streamed tool calls, subagent delegations, and approvals.
+- **Capabilities** — browse, create, open, edit, and delete tools, skills, subagents, and hooks.
+- **Integrations** — wire up connections and channels, and link Vercel Connect connectors (Slack, GitHub, Linear, …).
+- **Memory, schedules, evals** — inspect and configure each.
+- **Deploy** — link to Vercel, pull the AI Gateway token, and ship to production.
+- **Zero setup** — provisions its own Node runtime, installs Eve on first use, and walks Vercel sign‑in. A first‑time user never opens a terminal.
+
+## Where to go next
+
+- **[Install & setup](/docs/setup)** — download the app and what happens on first run.
+- **[Create an agent](/docs/create-agent)** — scaffold your first agent.
+- **[Connect to Vercel](/docs/connect-vercel)** — so the model can run.
+- **[The agent, explained](/docs/concepts)** — the mental model behind every tab.
+
+New to agents entirely? Read [The agent, explained](/docs/concepts) first, then [Create an agent](/docs/create-agent).

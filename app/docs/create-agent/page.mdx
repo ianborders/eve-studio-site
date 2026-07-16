@@ -1,0 +1,54 @@
+export const metadata = {
+  title: "Create an agent — Eve Studio Docs",
+  description:
+    "Scaffold a new Eve agent from Studio with the ＋ flow, or register one you already have with Add existing.",
+};
+
+# Create an agent
+
+An [Eve](https://eve.dev) agent is a folder. Studio can scaffold a fresh one for you, or register an agent you already have on disk. Both live on the **left rail**.
+
+## Create a new agent
+
+Click **＋** at the top of the left rail. Studio asks for:
+
+- **A name** — becomes the agent's folder and how it's listed in the rail.
+- **Web Chat (optional)** — check this to include the Web Chat application, so the agent ships a browser chat UI alongside the built-in HTTP channel. Leave it off for a headless agent you'll reach over HTTP or a platform channel.
+
+When you confirm, Studio runs `eve init` on the provisioned runtime and streams a **live log** as it works — you watch the scaffold, dependency install, and Git init happen in order, with a "working…" spinner and an elapsed timer.
+
+> **First run takes a minute.** Creating your first agent downloads Eve and its dependencies. That's a one-time cost; later agents reuse the cached runtime and packages.
+
+When it finishes, the new agent appears in the rail, already active, and you land in the workspace.
+
+## What gets scaffolded
+
+`eve init` writes a self-contained Eve app. The part you'll work in is the `agent/` folder:
+
+```
+my-agent/
+└── agent/
+    ├── instructions.md      # the system prompt
+    ├── agent.ts             # model + config
+    ├── tools/               # typed actions the agent can call
+    ├── skills/              # load-on-demand instructions
+    ├── subagents/           # specialist child agents
+    ├── hooks/               # observe the runtime event stream
+    ├── connections/         # MCP / OpenAPI integrations
+    ├── channels/            # where the agent is surfaced (Slack, web, …)
+    └── schedules/           # cron-driven jobs
+```
+
+Eve discovers every capability from the filesystem — a tool at `agent/tools/get_weather.ts` *is* the tool `get_weather`. A minimal agent is just `instructions.md` and `agent.ts`; the other folders fill in as you add capabilities. Every app also ships the built-in HTTP channel at `agent/channels/eve.ts`, whether or not you added Web Chat.
+
+For the full mental model behind each folder and how the tabs map onto it, read **[The agent, explained](/docs/concepts)**.
+
+## Add an agent you already have
+
+If you built an agent elsewhere — cloned a repo, scaffolded with the Eve CLI, or already work in Eve — use **Add existing** on the left rail. It opens a folder picker; choose the app root (the folder containing `agent/`) and Studio registers it as-is. Nothing in the folder is modified.
+
+## Next
+
+- **[Connect to Vercel](/docs/connect-vercel)** — give the agent a model credential so it can reply.
+- **[The workspace](/docs/workspace)** — the rail, header, and tabs you'll use to build it out.
+- **[Chat](/docs/chat)** — start talking to your new agent.

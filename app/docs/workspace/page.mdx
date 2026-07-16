@@ -1,0 +1,53 @@
+export const metadata = {
+  title: "The workspace — Eve Studio Docs",
+  description:
+    "A tour of the Eve Studio window: the left rail of agents and threads, the per-agent header, and the top tab bar.",
+};
+
+# The workspace
+
+Once an agent is active, Studio's window has three regions: the **left rail** (your agents and their chat threads), the **per-agent header** (name, status, and run/deploy controls), and the **top tab bar** (everything you do with the agent). This page is the map; each tab links to its own doc.
+
+## The left rail
+
+The rail lists every agent Studio knows about. At the top:
+
+- **Add existing** — opens a folder picker to register an Eve app you already have (the folder containing `agent/`).
+- **＋** — scaffolds a new agent. See **[Create an agent](/docs/create-agent)**.
+
+Click an agent to make it **active**. It expands to show that agent's **chat threads**, with an inline **＋ New chat** to start a fresh one. Threads are your saved conversations — see **[Chat](/docs/chat)**.
+
+Managing threads:
+
+- **Hover a thread** to reveal an **archive** icon; archiving moves the thread out of the sidebar without deleting it.
+- An **`ARCHIVED · N`** row appears when an agent has archived threads. Click it to open the **Archived** modal, where you can **Reopen** a thread back into the rail or delete it for good.
+
+**Settings** sits at the bottom of the rail.
+
+## The per-agent header
+
+Above the tabs, the header shows the active agent's state and its controls:
+
+- **Name** of the agent.
+- A **status pill** — *running* or *stopped*.
+- A **mono metadata line** with the current facts about the agent: its local dev URL and port, its deployed URL and age, and the Eve version — e.g. `local :2000 / deployed · 3d / eve 1.x`.
+- **Start / Stop** — starts or stops the local dev server (`eve dev`). Local **[Chat](/docs/chat)** needs this running.
+- **Deploy** — ships the agent to production (`eve deploy`). See **[Deploy to Vercel](/docs/deploy)**.
+
+## The top tab bar
+
+The tabs are the surfaces for building, running, and shipping the agent:
+
+- **[Chat](/docs/chat)** — talk to the agent's local dev server or its production deployment, with streamed tool calls, subagent delegations, reasoning, and approvals.
+- **[Instructions](/docs/instructions)** — edit `instructions.md` (the system prompt) and the model and reasoning in `agent.ts`.
+- **[Capabilities](/docs/capabilities)** — browse, create, open, edit, and delete Tools, Skills, Subagents, and Hooks.
+- **[Integrations](/docs/integrations)** — wire up Connections and Channels.
+- **[Memory](/docs/memory)** — see whether the agent uses Eve's native durable sessions or an external long-term brain (Arcana), and configure it.
+- **[Schedules](/docs/schedules)** — list and create cron jobs that wake the agent (`agent/schedules/*.ts`).
+- **[Deploy](/docs/deploy)** — build, deploy, view logs, and manage environment variables and the sandbox.
+- **[Evals](/docs/evals)** — inspect and run the agent's evaluations.
+
+## Next
+
+- **[Chat](/docs/chat)** — the tab you'll spend the most time in.
+- **[The agent, explained](/docs/concepts)** — the Eve concepts behind each tab.

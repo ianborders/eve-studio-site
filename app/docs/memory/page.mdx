@@ -1,0 +1,41 @@
+export const metadata = {
+  title: "Memory — Eve Studio Docs",
+  description:
+    "How an Eve agent remembers: native durable sessions that persist a conversation, and an optional external long-term brain (Arcana) that remembers across sessions.",
+};
+
+# Memory
+
+An agent's usefulness depends on what it can remember. Eve gives every agent memory at two different timescales, and Studio's **Memory** tab shows you which one is active.
+
+## Two kinds of memory
+
+**Native durable sessions (built in).** Every Eve conversation is a *durable session*. A session is the whole conversation or task: it is long-lived, survives process restarts and redeploys, and can span many messages over days or weeks without losing context. Within a session the agent keeps its full history — turns land in order, tool calls and their results keep their order, and you can read the whole thing back. When a session's context grows large, Eve **compacts** it: it writes a checkpoint that summarizes earlier history so the conversation can keep going without overflowing the model's context window. This is automatic and needs no configuration.
+
+The boundary matters: durable sessions remember *within a conversation*. A brand-new session starts fresh. Subagents get their own separate session and context, so nothing crosses that boundary implicitly.
+
+**External long-term brain (across sessions).** When an agent needs to remember things *between* sessions — facts, past work, what performed well, standing preferences — it uses an external memory store. Kybernesis's **Arcana** is the store these template agents use. Arcana is wired in as a connection that exposes memory tools (remember, recall, search) the agent calls during a turn, so memory is something the agent actively writes to and queries, not an ambient buffer. Each agent (and each subagent) can point at its own Arcana **workspace**, giving it a separate brain.
+
+The two work together: durable sessions carry the current conversation, and the external brain carries what should outlive it.
+
+## The Memory tab
+
+Open an agent and select the **Memory** top tab. It shows whether the agent is running on Eve's **native durable sessions** alone, or also has an **external long-term brain (Arcana)** attached — and, if Arcana is attached, the workspace it points at.
+
+## Wiring Arcana in Studio
+
+To attach an external brain, provide three things in the Memory tab:
+
+- **A workspace** — the Arcana workspace (brain) this agent reads from and writes to. Different agents or subagents can use different workspaces to keep their memories separate.
+- **An env var name** — the environment variable the agent's connection reads its key from (for example `ARCANA_API_KEY`).
+- **An API key** — the Arcana key that authorizes access to that workspace.
+
+Studio stores the key under the env var name you gave. **If the agent is linked to Vercel, the key is also pushed to the project's environment variables**, so the deployed agent has it too — not just your local dev server. (Linking is the same [Connect to Vercel](/docs/connect-vercel) step the model already needs.)
+
+Under the hood this configures a connection under `agent/connections/` that points at Arcana and sends the key; the agent's own tools then surface and query that memory during a turn. Keep the key out of source — it lives as an environment variable, never in code.
+
+## Where to go next
+
+- **[Integrations](/docs/integrations)** — connections and channels, the mechanism Arcana memory rides on.
+- **[The agent, explained](/docs/concepts)** — sessions, turns, and how context flows.
+- **[Deploy to Vercel](/docs/deploy)** — push memory keys to the deployed agent's environment.

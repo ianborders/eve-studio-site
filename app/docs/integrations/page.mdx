@@ -1,0 +1,134 @@
+export const metadata = {
+  title: "Connections & channels — Eve Studio Docs",
+  description:
+    "Give your agent tools from other services (connections) and surface it where people work (channels) — Slack, Linear, GitHub, Discord, web, and more — all from Eve Studio.",
+};
+
+# Connections & channels
+
+Two sides of the same coin:
+
+- **Connections** — how your agent **reaches out** to other services (their tools become the agent's tools).
+- **Channels** — how people **reach your agent** (Slack, web, GitHub, …).
+
+Both live in the **Integrations** tab in Eve Studio, with a sub-tab for each.
+
+---
+
+## Connections
+
+A connection points your agent at an external service and exposes its tools to the model. Files live in `agent/connections/`; the filename is the connection name, and discovered tools are called as `<name>__<tool>` (e.g. `linear__create_issue`). The model finds them through `connection_search`, so the `description` you write matters — it's the routing signal.
+
+### MCP connections
+
+Use MCP when the service already runs an MCP server that publishes its own tools.
+
+```ts title="agent/connections/linear.ts"
+import { connect } from "@vercel/connect/eve";
+import { defineMcpClientConnection } from "eve/connections";
+
+export default defineMcpClientConnection({
+  url: "https://mcp.linear.app/mcp",
+  description: "Linear workspace: issues, projects, cycles, and comments.",
+  auth: connect("mcp.linear.app/linear"),
+});
+```
+
+### OpenAPI connections
+
+Use OpenAPI when the service publishes an HTTP API contract — Eve generates one tool per operation.
+
+### Authorizing with Vercel Connect
+
+For OAuth-backed services, prefer **[Vercel Connect](https://vercel.com/docs/connect)**: it owns the browser consent flow, encrypted token storage, refresh, and project access, so credentials never touch model context. The `connect()` helper wires that lifecycle into the connection's `auth`.
+
+- **User-scoped** (default): `connect("<connector-uid>")` — the first call for a new user parks the turn on an `authorization.required` event with a sign-in URL, then resumes.
+- **App-scoped**: `connect({ connector: "<uid>", principalType: "app" })` — the connection acts as the agent itself, non-interactively.
+
+### Static credentials
+
+Not everything needs OAuth — a connection can also authenticate with a static bearer token from an environment variable, or a custom header. Set those in the **[Deploy → Environment](/docs/deploy)** panel.
+
+### Managing connections in Studio
+
+**Integrations → Connections** shows two things:
+
+- **Custom connections** — the connection files in `agent/connections/`. Add one (MCP or OpenAPI, with a URL and an auth mode), and open, edit, or delete it.
+- **Vercel Connect connectors** — the connectors on your linked Vercel project. **Create** a connector (opens Vercel Connect), then **Use in agent** to write the connection (or channel) code wired to that connector's UID.
+
+---
+
+## Channels
+
+A channel is the edge adapter between a platform and your agent. It normalizes platform input into a message, owns the conversation's resume handle, and decides how a reply is delivered. Channel files live in `agent/channels/`; the file stem is the channel id. Local subagents don't declare channels.
+
+### The default HTTP channel
+
+Eve's HTTP channel is always on — it's the session API the Studio chat, the terminal UI, and `curl` all talk to (`POST /eve/v1/session`, `GET …/stream`). You only add `agent/channels/eve.ts` to override defaults like route auth.
+
+### Platform channels
+
+| Channel | Auth |
+| --- | --- |
+| **Slack** — @mentions, DMs, threads, HITL buttons | Vercel Connect |
+| **GitHub** — @mentions, PR review | Vercel Connect |
+| **Linear** — issue delegation, agent sessions | Vercel Connect |
+| **Discord** — slash commands, components | Env vars |
+| **Microsoft Teams** — messages + Adaptive Cards | Env vars |
+| **Telegram** — bot messages | Env vars |
+| **Twilio** — SMS & voice | Env vars |
+| **Web Chat** — a Next.js browser app | — |
+| **Custom** — your own webhook / WebSocket | your code |
+
+### Vercel Connect channels (Slack, GitHub, Linear)
+
+These run credentials through Vercel Connect — no `SLACK_BOT_TOKEN` for you to manage. The channel file references the connector, e.g.:
+
+```ts title="agent/channels/slack.ts"
+import { connectSlackCredentials } from "@vercel/connect/eve";
+import { slackChannel } from "eve/channels/slack";
+
+export default slackChannel({
+  credentials: connectSlackCredentials("slack/my-agent"),
+});
+```
+
+The connector must be **attached with triggers** pointed at Eve's route so the platform delivers events (see below).
+
+### Env-based channels (Discord, Teams, Telegram, Twilio)
+
+These read credentials from environment variables. When you add one in Studio, it tells you exactly which vars to set (e.g. `DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_BOT_TOKEN`). Set them in **[Deploy → Environment](/docs/deploy)**, then restart.
+
+### Web Chat
+
+Adds a Next.js Web Chat application so your agent has a browser UI. You can enable it when you first [create an agent](/docs/create-agent), or add it later.
+
+### Custom channels
+
+For any surface Eve doesn't ship, author one with `defineChannel` from `eve/channels` — route handlers, an `events` map, and a `send` call to start or resume a session.
+
+### Adding a channel in Studio
+
+**Integrations → Channels** shows what's configured and a catalog of the rest.
+
+1. Pick a channel from the catalog.
+2. Studio guides you by auth type:
+   - **Connect** channels (Slack/GitHub/Linear) → choose a Vercel Connect connector.
+   - **Env** channels → shows the variables to set.
+   - **Web Chat** → scaffolds the Next.js app.
+3. It writes `agent/channels/<kind>.ts`.
+
+## Attaching a connector for triggers
+
+For an event-driven channel, the platform needs to deliver events to Eve's route. Studio's **Attach for triggers** runs:
+
+```bash
+vercel connect attach <connector-uid> --triggers --trigger-path /eve/v1/<kind> --yes
+```
+
+That re-points the connector's trigger destination at Eve's channel route (e.g. `/eve/v1/slack`). Then **[deploy](/docs/deploy)** so the live agent starts receiving events.
+
+## Next
+
+- [Deploy to Vercel](/docs/deploy) — ship the agent so channels can reach it.
+- [Hooks](/docs/hooks) — observe results from connection tools.

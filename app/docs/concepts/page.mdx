@@ -1,0 +1,133 @@
+export const metadata = {
+  title: "The agent, explained — Eve Studio Docs",
+  description:
+    "The mental model behind every Studio tab: an Eve agent is a folder, and the filesystem is the interface.",
+};
+
+# The agent, explained
+
+Everything Studio shows you maps to one idea from [Eve](https://eve.dev): **an agent is a folder.** There is no central config object and no registry to keep in sync. Each concern — instructions, tools, subagents, schedules — has a predictable home under `agent/`, and Eve discovers the whole surface by reading the filesystem.
+
+Studio is a window onto that folder. Its tabs are views of the subdirectories, and its editors read and write the same files Eve reads at runtime. Understand the folder and you understand the app.
+
+## An Eve agent is a folder
+
+A scaffolded agent looks like this:
+
+```
+my-agent/
+├── package.json
+└── agent/
+    ├── instructions.md      # the system prompt
+    ├── agent.ts             # model + runtime config
+    ├── tools/               # typed actions the agent can call
+    ├── skills/              # load-on-demand instructions
+    ├── subagents/           # specialist child agents
+    ├── hooks/               # observe the runtime event stream
+    ├── connections/         # MCP / OpenAPI integrations
+    ├── channels/            # where the agent is surfaced (Slack, web, …)
+    └── schedules/           # cron-driven jobs
+```
+
+A minimal agent is just two files — `instructions.md` and `agent.ts`. You add the other folders only when the agent needs them. The tree stays readable before it runs: the directory tells you what the agent can do.
+
+## The filesystem is the interface
+
+A file's **location** says what it does, and its **path** gives it a name. There is no `name` field anywhere.
+
+- A tool at `agent/tools/get_weather.ts` *is* the tool `get_weather`.
+- A connection at `agent/connections/linear.ts` registers as `linear`.
+- A subagent at `agent/subagents/research/` registers as `research`.
+
+Add a file and Eve discovers it; rename or move it and its identity moves with it. This is why every Studio editor works by opening the exact source file: the file *is* the capability. When you click **New** in a Studio tab, the app scaffolds the correctly-named file in the right folder, and Eve picks it up.
+
+## Each subdirectory's role
+
+### `instructions.md` — the always-on system prompt
+
+The agent's permanent identity: persona, tone, and standing rules that hold on **every** turn. Eve prepends it to every model call. Keep it short and stable; situational procedures belong in skills, not here. A static prompt is markdown; swap to `instructions.ts` when you need to build the prompt from code.
+
+→ [Instructions & model](/docs/instructions)
+
+### `agent.ts` — model and runtime config
+
+Calls `defineAgent` to choose the model and tune the runtime (reasoning effort, compaction, token limits). If it's absent, Eve defaults to `anthropic/claude-sonnet-5`; when present, `model` is required.
+
+→ [Instructions & model](/docs/instructions)
+
+### `tools/` — typed actions
+
+One `defineTool` per file. Each tool has a Zod `inputSchema` and an `execute` function, and runs in the **app runtime** with full `process.env` (not in the sandbox). A tool can be gated behind human approval for sensitive or irreversible actions.
+
+→ [Tools, skills & subagents](/docs/capabilities)
+
+### `skills/` — load-on-demand instructions
+
+A skill is a procedure the model pulls into context only when a turn calls for it — progressive disclosure, not always-on. Each lives at `skills/<name>/SKILL.md` with a `description` Eve uses to route to it, plus optional `references/` files.
+
+→ [Tools, skills & subagents](/docs/capabilities)
+
+### `subagents/` — specialist child agents
+
+A subagent under `subagents/<id>/` is its own agent root: its own `agent.ts` (with a required `description`), `instructions.md`, and its own `tools/`, `skills/`, and `hooks/`. It inherits nothing from the root, so the parent can hand off work to a specialist with a narrower, purpose-built surface.
+
+→ [Tools, skills & subagents](/docs/capabilities)
+
+### `hooks/` — observe the event stream
+
+A hook subscribes to runtime stream events (`session.started`, `action.result`, `message.completed`, …) and runs side effects after each event is durably recorded — audit logging, metrics, alerting. Hooks are observe-only; they cannot inject model context.
+
+→ [Hooks](/docs/hooks)
+
+### `connections/` — external tools
+
+A connection wires the agent into an external MCP server or an OpenAPI service you don't author. Eve discovers the remote tools, surfaces them to the model, and brokers auth — the model never sees the connection's URL or credentials. Tools are called by a qualified name like `linear__list_issues`.
+
+→ [Integrations](/docs/integrations)
+
+### `channels/` — where the agent is surfaced
+
+A channel is the edge adapter between a platform and the agent: it normalizes inbound messages, owns the conversation's resume handle, and decides delivery. Every app ships the built-in HTTP channel (`agent/channels/eve.ts`); add Slack, Discord, or a custom channel to reach the agent elsewhere.
+
+→ [Integrations](/docs/integrations)
+
+### `schedules/` — cron-driven jobs
+
+A schedule starts the agent on its own clock instead of waiting for a message — daily digests, syncs, heartbeats. Each is one file under `schedules/` carrying a cron expression. On Vercel each becomes a Cron Job evaluated in **UTC**. Schedules are root-only; subagents can't have them.
+
+→ [Schedules](/docs/schedules)
+
+## The durable runtime
+
+The same behavior applies whether a message comes from the web, the terminal, or Slack. Eve turns the platform input into a message, gives the model its instructions, skills, tools, and history, runs the work — calling tools and subagents as needed — then delivers the result back in the form the platform expects. Three properties of that runtime are worth knowing:
+
+- **Checkpointed workflows.** A session is a durable conversation that can run for days and survive process restarts and redeploys. Work nests as **session → turn → step**, and Eve checkpoints at every step boundary. Completed steps never re-run; a crash resumes from the last checkpoint. A run can also **park** durably — waiting on a human approval, an OAuth sign-in, or a long subagent — holding no compute until the answer arrives. (Under the hood this is the open-source [Workflow SDK](https://workflow-sdk.dev); Eve owns the machinery so your tools stay simple.)
+- **Sandboxed compute.** The built-in shell and file tools (`bash`, `read_file`, `write_file`, `glob`, `grep`) proxy their work into an isolated sandbox, so the model can run commands and edit files without touching your app runtime. Your own `defineTool` code, by contrast, runs in the app runtime with full environment access.
+- **Model routing.** The model string in `agent.ts` routes through the Vercel AI Gateway, so an agent needs a credential to run. This is why Studio surfaces a **Connect to Vercel** step — see [Connect to Vercel](/docs/connect-vercel).
+
+→ [The workspace](/docs/workspace) shows how Studio runs and deploys this runtime.
+
+## How Studio maps the folder to tabs
+
+Studio's tabs are one-to-one with the folder:
+
+| Studio tab       | Reads / writes                                            | Concept doc                       |
+| ---------------- | -------------------------------------------------------- | --------------------------------- |
+| **Chat**         | Talks to the running agent (local or deployed)           | [The workspace](/docs/workspace) / [Chat](/docs/chat) |
+| **Instructions** | `agent/instructions.md` and the model in `agent/agent.ts` | [Instructions & model](/docs/instructions) |
+| **Capabilities** | `tools/`, `skills/`, `subagents/`, `hooks/`              | [Tools, skills & subagents](/docs/capabilities) · [Hooks](/docs/hooks) |
+| **Integrations** | `connections/` and `channels/`                           | [Integrations](/docs/integrations) |
+| **Memory**       | Native durable sessions or an external brain (Arcana)    | [Memory](/docs/memory)            |
+| **Schedules**    | `agent/schedules/*.ts`                                   | [Schedules](/docs/schedules)      |
+| **Deploy**       | Builds and ships via `eve deploy`; edits env             | [Deploy](/docs/deploy)            |
+| **Evals**        | Test the agent's behavior                                | [Evals](/docs/evals)              |
+
+Every editor in these tabs opens the underlying file. Nothing is stored in a database Studio owns — edit a file on disk and Studio reflects it; edit it in Studio and Eve serves the change on the next turn.
+
+## Where to go next
+
+- **[Instructions & model](/docs/instructions)** — the system prompt and `agent.ts`.
+- **[Tools, skills & subagents](/docs/capabilities)** — the three ways to give the agent capabilities.
+- **[Hooks](/docs/hooks)** — observe the runtime event stream.
+- **[Integrations](/docs/integrations)** — connections and channels.
+- **[Create an agent](/docs/create-agent)** — scaffold the folder for the first time.

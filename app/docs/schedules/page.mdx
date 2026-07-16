@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "Schedules — Eve Studio Docs",
+  description:
+    "Cron-driven jobs that wake an Eve agent on a cadence, and how to create and manage them from Studio's Schedules tab.",
+};
+
+# Schedules
+
+A schedule starts an agent on its own clock instead of waiting for someone to message it. Use one for a daily digest, a data sync, a cleanup sweep, a heartbeat, or any proactive job that should fire on a cadence. In Eve, each schedule is a single file under `agent/schedules/`; Studio's **Schedules** tab lists them and lets you add one without touching the filesystem.
+
+## How schedules work in Eve
+
+A schedule is authored with `defineSchedule` and carries a **cron expression** plus a **prompt**. The name comes from the file path — `agent/schedules/daily-digest.ts` is the schedule `daily-digest`, and nested directories are fine (`agent/schedules/billing/sweep.ts` → `billing/sweep`).
+
+The simplest form is a fire-and-forget markdown prompt. Eve wakes the agent, runs it on that prompt, and throws away the output — though the agent can still call tools, write to backends, and log along the way:
+
+```ts title="agent/schedules/daily-digest.ts"
+import { defineSchedule } from "eve/schedules";
+
+export default defineSchedule({
+  cron: "0 9 * * 1-5",
+  markdown: "Pull open Linear issues and POST a summary to the metrics endpoint.",
+});
+```
+
+You can write the same thing as a plain `.md` file whose frontmatter carries the `cron` and whose body is the prompt:
+
+```md title="agent/schedules/cleanup.md"
+---
+cron: "0 0 * * 0"
+---
+
+Sweep stale workflow state.
+```
+
+Schedules are **root-only**: a declared [subagent](/docs/capabilities) cannot have its own `schedules/` directory. Eve does support a richer handler form (`run`) for schedules that need to deliver output to a channel or compute their arguments at fire time — see the [Eve schedules docs](https://eve.dev) for that API.
+
+## Cron runs in UTC on Vercel
+
+The `cron` field is a standard 5-field expression — `minute hour day-of-month month day-of-week`, with minute granularity. On a deployed agent, **each schedule becomes a Vercel Cron Job, and Vercel evaluates the expression in UTC.** So `"0 9 * * 1-5"` fires at 09:00 UTC on weekdays — convert your local time to UTC when you pick the fields.
+
+One thing to know while iterating: the local dev server (`eve dev`) does **not** fire schedules on their cron cadence. Schedules only run automatically on the deployed agent. Studio runs the same dev server locally, so a schedule you add shows up in the list immediately but won't tick until you [deploy](/docs/deploy).
+
+## The Schedules tab
+
+Open an agent and select the **Schedules** top tab. It lists every schedule discovered under `agent/schedules/` — the derived name, its cron expression, and its prompt.
+
+To add one, click **New** and provide:
+
+- **A cron expression** — the 5-field UTC schedule (for example `0 9 * * 1-5`).
+- **A markdown prompt** — the instruction that wakes the agent when the schedule fires.
+
+Studio writes the new `agent/schedules/*.ts` file for you and it appears in the list. As with any capability, you can click a schedule row to open the in-app editor and edit its source directly.
+
+Because schedules only run on the deployed agent, the workflow is: add or edit the schedule here, confirm it in the list, then **[Deploy](/docs/deploy)** so the next production tick picks it up. After deploying, Vercel shows the discovered jobs under **Settings → Cron Jobs** and their run history under **Observability → Cron Jobs**.
+
+## Where to go next
+
+- **[Deploy to Vercel](/docs/deploy)** — ship the agent so its schedules actually fire.
+- **[Capabilities](/docs/capabilities)** — the tools and subagents a scheduled run leans on.
+- **[Integrations](/docs/integrations)** — deliver schedule output to a channel like Slack.

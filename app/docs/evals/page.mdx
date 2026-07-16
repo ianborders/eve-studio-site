@@ -1,0 +1,64 @@
+export const metadata = {
+  title: "Evals — Eve Studio Docs",
+  description:
+    "What evals are in Eve, how Studio's Evals tab lists and runs them, and how to read the results.",
+};
+
+# Evals
+
+An eval is a scored test case for your agent. You drive the agent through one or more turns and assert on what it did — the run completed, the right tool ran, the reply contains the right text — and the eval passes or fails. Evals are how you catch a regression when you change an instruction, a tool, or the model. Studio's **Evals** tab lists them and runs them for you.
+
+## What an eval is in Eve
+
+Eve discovers evals under an app-root `evals/` directory, in `.eval.ts` files. The file path is the eval's identity — `evals/weather/brooklyn-forecast.eval.ts` is the eval `weather/brooklyn-forecast`. Each is a single `async test(t)` function where `t` is both the driver and the assertion surface:
+
+```ts title="evals/weather/brooklyn-forecast.eval.ts"
+import { defineEval } from "eve/evals";
+import { includes } from "eve/evals/expect";
+
+export default defineEval({
+  description: "Basic message and tool-usage coverage for the weather agent.",
+  async test(t) {
+    await t.send("What is the weather in Brooklyn?");
+    t.succeeded();
+    t.calledTool("get_weather");
+    t.check(t.reply, includes("Sunny"));
+  },
+});
+```
+
+The key thing to understand: **evals exercise the same HTTP surface your users hit, against a live model.** The runner boots (or targets) a real agent server, drives a real session, and grades what comes back. A passing eval means the agent actually booted, accepted the request, and produced the result you asserted. That realism is also why evals take time — every run makes live model calls.
+
+Assertions come in two severities. **Gates** are hard: a failed gate fails the eval. **Soft** assertions are tracked as metrics and don't fail the eval unless you opt into strict mode. On the command line this is `eve eval`, which exits `0` when every eval passed its gates.
+
+## The Evals tab
+
+Open an agent and select the **Evals** top tab. It lists every eval discovered under `evals/` — each one's id (its file path) and description.
+
+From the list you can:
+
+- **Run one** — execute a single eval.
+- **Run all** — execute every discovered eval.
+
+Because each run drives a real session against a live model, runs are **not instant**. Studio shows a live "working…" indicator with an elapsed timer while an eval is in flight — the same busy state you see for other long steps. Let it finish rather than assuming it stalled.
+
+## Reading results
+
+When a run completes, each eval reports as **passed** or **failed**:
+
+- **Passed** — every gate assertion in that eval held. This is the CLI's exit code `0`.
+- **Failed** — a gate assertion failed, the run errored, or (in strict mode) a soft assertion missed its threshold. This is exit code `1`. A configuration error is exit code `2`.
+
+An eval that intentionally skips (`t.skip(reason)`) is reported as skipped and doesn't count as passed or failed.
+
+For the full detail behind a failure, Eve drops artifacts under `.eve/evals/<timestamp>/` on the agent — a run summary, per-eval assertion results and verdicts, the captured event stream, and any log lines. The tab's summary tells you *which* eval failed; the artifact tells you *why*.
+
+## When to run them
+
+Run the relevant evals after you change something that affects behavior — an [instruction](/docs/instructions), a [tool or subagent](/docs/capabilities), or the model — and again before you [deploy](/docs/deploy). A small set of smoke evals (assert the run succeeded, plus one or two content checks) catches most regressions.
+
+## Where to go next
+
+- **[Capabilities](/docs/capabilities)** — the tools evals most often assert on.
+- **[Instructions](/docs/instructions)** — the prompt changes evals guard against.
+- **[Deploy to Vercel](/docs/deploy)** — ship once the evals are green.

@@ -1,0 +1,100 @@
+export const metadata = {
+  title: "Instructions & model — Eve Studio Docs",
+  description:
+    "Edit the agent's system prompt in the Instructions tab and its model and reasoning in the Model tab.",
+};
+
+# Instructions & model
+
+Two files decide how an agent thinks: `instructions.md` — the always-on system prompt — and `agent.ts` — the model and runtime config. Studio's **Instructions** tab edits the first, and the **Model** view edits the second. This page covers both, and how Studio warns you when the agent can't run.
+
+If you're new to the folder layout, read [The agent, explained](/docs/concepts) first.
+
+## Instructions: the system prompt
+
+`agent/instructions.md` is the agent's permanent identity — its persona, tone, and standing rules. Eve prepends this markdown to **every** model call in a session, so whatever you write here holds on every turn.
+
+```md title="agent/instructions.md"
+You are a concise assistant. Use tools when they are available.
+```
+
+Keep it to stable behavior: identity, tone, and rules that should always apply. It is the counterpart to [skills](/docs/capabilities), which load *situational* procedures on demand — anything long or only-sometimes-relevant belongs in a skill, not in instructions, so it doesn't bloat every turn. Instructions never run code; when you need typed executable behavior, reach for a [tool](/docs/capabilities).
+
+### Edit instructions in Studio
+
+Open the agent and go to the **Instructions** tab. It's a markdown editor over `agent/instructions.md`:
+
+1. Edit the prompt.
+2. **Save** to write the file.
+3. Changes take effect on the next turn — locally as soon as the dev server reloads, and in production after you [deploy](/docs/deploy). A durable session keeps its history but adopts the new instructions on its next turn.
+
+Because Studio edits the file directly, anything you change here is exactly what Eve serves. There is no separate copy.
+
+### Dynamic instructions (advanced)
+
+For most agents a static markdown file is all you need. Eve also supports building the prompt from code when you need typed helpers or build-time values: author `agent/instructions.ts` instead of `agent/instructions.md` (the two can't coexist at the root), export `defineInstructions({ markdown })`, and Eve captures the resolved text at build time. To resolve the prompt per session — by tenant, channel, or authenticated user — wrap it in a `defineDynamic` resolver. You can also split a long prompt across an `agent/instructions/` directory, whose entries combine in alphabetical order. See the Eve docs at [eve.dev](https://eve.dev) for the dynamic-capabilities API.
+
+## Model: `agent.ts`
+
+`agent/agent.ts` calls `defineAgent` to select the model and configure the runtime:
+
+```ts title="agent/agent.ts"
+import { defineAgent } from "eve";
+
+export default defineAgent({
+  model: "anthropic/claude-opus-4.8",
+});
+```
+
+The model string routes through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway). If `agent.ts` is omitted entirely, Eve defaults to `anthropic/claude-sonnet-5`; when the file is present, `model` is **required**. To call a provider directly instead of through the gateway, install that provider's AI SDK package and pass a `LanguageModel`:
+
+```ts title="agent/agent.ts"
+import { anthropic } from "@ai-sdk/anthropic";
+import { defineAgent } from "eve";
+
+export default defineAgent({
+  model: anthropic("claude-opus-4-8"),
+});
+```
+
+Note the id format differs: the gateway uses a dot (`anthropic/claude-opus-4.8`), a direct provider id uses hyphens (`claude-opus-4-8`).
+
+### Reasoning effort
+
+Add `reasoning` to control how hard the model thinks, using Eve's provider-agnostic option:
+
+```ts title="agent/agent.ts"
+export default defineAgent({
+  model: "openai/gpt-5.5",
+  reasoning: "high",
+});
+```
+
+Supported values are `"provider-default"`, `"none"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, and `"xhigh"`. The selected model and provider determine which levels are actually available and how they map to native settings.
+
+### Other runtime config
+
+`defineAgent` also takes optional fields you may see in `agent.ts`:
+
+- **`compaction`** — Eve summarizes older turns as a session approaches the context window (on by default at `thresholdPercent: 0.9`). Lower the threshold to compact sooner.
+- **`limits`** — framework-owned caps like `maxInputTokensPerSession` and `maxOutputTokensPerSession`.
+- **`modelOptions`** — provider-specific option overrides.
+
+These are all optional; a working `agent.ts` can be just a `model`.
+
+### Edit the model in Studio
+
+Open the **Model** view for the agent. Studio reads `agent/agent.ts` and shows the configured model. Edit the model (and reasoning) here and **Save**, and Studio writes it back to `agent.ts`.
+
+## When the agent can't run locally
+
+The model runs through the Vercel AI Gateway, so the agent needs a **credential** to make any model call — either a `VERCEL_OIDC_TOKEN` (pulled by linking the project to Vercel) or an `AI_GATEWAY_API_KEY`. A direct-provider model instead needs that provider's key (e.g. `ANTHROPIC_API_KEY`).
+
+Studio shows the configured model and **warns when it can't run** without a credential. In the Chat tab this appears as a **Connect to Vercel** banner: Studio walks you through signing in, picking a team, and running `vercel link` + `vercel env pull` so the token lands in your environment and the model can respond. The full flow is in [Connect to Vercel](/docs/connect-vercel).
+
+## Where to go next
+
+- **[Tools, skills & subagents](/docs/capabilities)** — give the agent capabilities beyond the prompt.
+- **[Connect to Vercel](/docs/connect-vercel)** — so the model can actually run.
+- **[The agent, explained](/docs/concepts)** — how instructions and the model fit the whole folder.
+- **[Deploy](/docs/deploy)** — ship instruction and model changes to production.
