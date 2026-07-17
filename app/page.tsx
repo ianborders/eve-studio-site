@@ -173,7 +173,7 @@ const FEATURES = [
   {
     icon: IconBrain,
     title: "Long-term memory",
-    body: "See whether an agent uses Eve's durable sessions or an external brain, and wire it up so your agent actually remembers across runs.",
+    body: "Connect an Arcana brain in a couple of clicks and your agent remembers across runs — the facts you tell it, and what it did while you were away. Evolve learns from that history too.",
   },
   {
     icon: IconPlug,
@@ -371,6 +371,21 @@ export default function Home() {
           </div>
 
           <p className="mt-6 max-w-2xl text-[13px] leading-relaxed text-muted">
+            Works on any Eve agent as it comes — proposals raised from Slack
+            queue to your own Vercel project, and Studio sets that up in a
+            click. Give the agent an{" "}
+            <a
+              href="/docs/memory"
+              className="text-foreground underline decoration-border-strong underline-offset-4 hover:decoration-foreground"
+            >
+              Arcana brain
+            </a>{" "}
+            and it goes further: it remembers the facts you tell it, and Evolve
+            learns from everything it has actually done — including the work it
+            did on Slack while you were away.
+          </p>
+
+          <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-muted">
             Why in the app? An Eve agent can&apos;t rewrite its own compiled,
             read-only deployment — so Studio authors the change and you approve
             it, and the agent stays base Eve.{" "}
