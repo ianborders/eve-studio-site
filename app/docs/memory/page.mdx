@@ -34,8 +34,17 @@ Studio stores the key under the env var name you gave. **If the agent is linked 
 
 Under the hood this configures a connection under `agent/connections/` that points at Arcana and sends the key; the agent's own tools then surface and query that memory during a turn. Keep the key out of source — it lives as an environment variable, never in code.
 
+## What a brain adds to Evolve
+
+[Evolve](/docs/evolve) works on any agent without one. Attach a brain and it does more:
+
+- **Facts become memory.** Tell the agent *"I always ship on Thursdays"* and Evolve routes it to the brain instead of editing source — no rebuild, no redeploy. Without a brain there's nowhere to put a fact, so that route isn't available.
+- **Scan for patterns sees the whole picture.** It reads the brain's timeline as well as your chats, so it can suggest automating work the agent did on Slack or on a schedule — not just what you typed in Studio.
+- **Proposals queue to the brain.** Self-changes raised while the agent is deployed land alongside everything else it remembers, rather than in a separate store.
+
 ## Where to go next
 
+- **[Evolve](/docs/evolve)** — self-changes, and what a brain unlocks.
 - **[Integrations](/docs/integrations)** — connections and channels, the mechanism Arcana memory rides on.
 - **[The agent, explained](/docs/concepts)** — sessions, turns, and how context flows.
 - **[Deploy to Vercel](/docs/deploy)** — push memory keys to the deployed agent's environment.
