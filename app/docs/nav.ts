@@ -25,6 +25,10 @@ export const DOCS_NAV: DocGroup[] = [
     ],
   },
   {
+    group: "Evolve",
+    items: [{ title: "Evolve", href: "/docs/evolve" }],
+  },
+  {
     group: "Eve concepts",
     items: [
       { title: "The agent, explained", href: "/docs/concepts" },
@@ -32,6 +36,7 @@ export const DOCS_NAV: DocGroup[] = [
       { title: "Tools, skills & subagents", href: "/docs/capabilities" },
       { title: "Hooks", href: "/docs/hooks" },
       { title: "Connections & channels", href: "/docs/integrations" },
+      { title: "Connecting Slack", href: "/docs/slack" },
       { title: "Schedules", href: "/docs/schedules" },
       { title: "Memory", href: "/docs/memory" },
       { title: "Evals", href: "/docs/evals" },

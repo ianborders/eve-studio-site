@@ -143,6 +143,12 @@ const CHANNELS = [
 
 const FEATURES = [
   {
+    icon: IconSparkles,
+    title: "Evolve — self-improving agents",
+    body: "Tell an agent to change itself, in chat or over Slack. Studio drafts the skill, tool, schedule, or edit with the agent's own model, shows you a diff, and commits it on approval. The agent stays pure Eve.",
+    wide: true,
+  },
+  {
     icon: IconChat,
     title: "Chat, local & deployed",
     body: "Stream your agent's turns, tool calls, subagent delegations, and approvals. Talk to the local dev server or your production deployment from the same window.",
@@ -224,6 +230,9 @@ export default function Home() {
             </span>
           </a>
           <nav className="flex items-center gap-5 text-[13px]">
+            <a href="#evolve" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
+              Evolve
+            </a>
             <a href="#features" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
               Features
             </a>
@@ -297,6 +306,81 @@ export default function Home() {
               priority
             />
           </div>
+        </div>
+      </section>
+
+      {/* Evolve — the flagship, native to Eve Studio */}
+      <section id="evolve" className="border-t border-border">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-canvas text-foreground">
+              <IconSparkles className="h-[18px] w-[18px]" />
+            </span>
+            <p className="kicker">Native to Eve Studio</p>
+          </div>
+          <h2 className="mt-5 max-w-3xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+            Evolve — agents that improve themselves, with you in the loop.
+          </h2>
+          <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
+            Tell an agent to change itself — in chat, or over Slack — and Eve
+            Studio drafts the change with the agent&apos;s own model, shows you
+            the exact diff, and on your approval writes the files and commits
+            them to git. Nothing changes without your yes, and the agent stays
+            pure Eve.
+          </p>
+
+          <div className="mt-12 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-border bg-canvas p-6">
+              <p className="font-spacemono text-[11px] tracking-widest text-faint">
+                01
+              </p>
+              <h3 className="mt-2 text-[15px] font-semibold tracking-tight">
+                Say it, anywhere
+              </h3>
+              <p className="mt-2 text-[14px] leading-relaxed text-muted">
+                Type it in the Evolve tab, say it in chat — Studio detects it —
+                or DM the deployed agent on Slack, and it proposes the change
+                back to you.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-canvas p-6">
+              <p className="font-spacemono text-[11px] tracking-widest text-faint">
+                02
+              </p>
+              <h3 className="mt-2 text-[15px] font-semibold tracking-tight">
+                Review the exact diff
+              </h3>
+              <p className="mt-2 text-[14px] leading-relaxed text-muted">
+                Studio turns it into a new skill, tool, schedule, an
+                instructions edit, or a memory — drafted with the agent&apos;s
+                own model. Tweak it, then approve.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-canvas p-6">
+              <p className="font-spacemono text-[11px] tracking-widest text-faint">
+                03
+              </p>
+              <h3 className="mt-2 text-[15px] font-semibold tracking-tight">
+                Applied &amp; committed
+              </h3>
+              <p className="mt-2 text-[14px] leading-relaxed text-muted">
+                It writes the files and git-commits them — a revert point for
+                every change. Restart or deploy to go live.
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-6 max-w-2xl text-[13px] leading-relaxed text-muted">
+            Why in the app? An Eve agent can&apos;t rewrite its own compiled,
+            read-only deployment — so Studio authors the change and you approve
+            it, and the agent stays base Eve.{" "}
+            <a
+              href="/docs/evolve"
+              className="text-foreground underline decoration-border-strong underline-offset-4 hover:decoration-foreground"
+            >
+              How Evolve works →
+            </a>
+          </p>
         </div>
       </section>
 

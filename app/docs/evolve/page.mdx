@@ -1,0 +1,72 @@
+export const metadata = {
+  title: "Evolve — Eve Studio Docs",
+  description:
+    "Change an agent by talking to it — Studio drafts the file change with the agent's own model, shows you an exact diff, and on approval writes the files and git-commits them.",
+};
+
+# Evolve
+
+Evolve is the way you change an agent in Eve Studio: you describe what you want in plain language, and Studio turns it into a real edit to the agent's files. It classifies your request, drafts the actual change **with the agent's own model** (its Vercel AI Gateway), shows you an exact **diff**, and on your approval **writes the files and git-commits** them. Nothing changes without an approved diff.
+
+---
+
+## Why Studio does this, not the agent
+
+An Eve agent can't edit its own files at runtime. It's filesystem-first, compiled into an immutable deployment, and read-only in production — there's no writable source tree for a live agent to reach into.
+
+So the **control plane** does the authoring. Studio drafts the change, you approve it, and Studio writes it to disk and commits it. The agent stays pure base Eve — nothing bespoke wedged into the runtime — which means it stays **upgradable from the base release**. And because every change lands as a **git commit**, every change is a revert point: if an edit doesn't pan out, roll the commit back.
+
+---
+
+## What a request becomes
+
+Studio routes your intent to the right kind of capability. The same sentence can become very different files depending on what it's really asking for:
+
+- A durable **fact about you** → **memory** (the Arcana brain). No rebuild — it's written to the agent's long-term memory, not its source.
+- A stable **behavior or persona** change → **`instructions.md`**, the system prompt.
+- A reusable **procedure** → a **skill**.
+- A typed **action** the agent can take → a **tool**.
+- Recurring **proactive work** → a **schedule**. Local time in a schedule is converted to a UTC cron using your computer's timezone.
+
+You don't have to know which bucket you're asking for — classification is the first thing Evolve does, and the drafted diff shows you where it landed.
+
+---
+
+## Three ways to evolve
+
+### 1. The Evolve tab
+
+Open an agent and go to the **Evolve** tab. Type an intent — for example, *"Create a skill that drafts my weekly update"* — and Studio drafts the change, shows the diff, and waits for your approval.
+
+The tab also has a **Scan for patterns** button. It reads your recent chats and the agent's memory timeline and suggests recurring tasks worth turning into a skill, a tool, or a schedule — the things you keep doing by hand that the agent could own.
+
+### 2. In Studio chat
+
+You don't have to switch tabs. When a message in chat looks like a self-change — *"remind me…"*, *"from now on…"*, *"create a schedule…"* — Studio detects it and opens the approval flow automatically. If it guessed wrong and you just wanted to talk, there's a **send as a normal message** escape.
+
+### 3. From Slack (or any deployed channel)
+
+You can let the agent propose its own changes from wherever it's deployed. In the **Evolve** tab, turn on **"Let the agent propose its own changes"** and redeploy. The agent gains a `propose_change` tool.
+
+When you DM the agent a self-change request, it can't write files — deployed means read-only — so instead it **queues the proposal into its Arcana brain**. Back in Studio, the **Proposals inbox** at the top of the Evolve tab shows pending proposals. Hit **Review** and it runs the same draft → diff → approve pipeline as everything else; once applied, the proposal is marked resolved.
+
+---
+
+## Review and apply
+
+Every route ends at the same gate: a diff you approve.
+
+Before you approve, you can **Edit** the drafted change — tweak the wording, rename a file, adjust the cron. When you're happy, approve, and Studio writes the files and commits.
+
+To pick up the change:
+
+- **Restart** the agent to load it locally, or
+- **Deploy** for production.
+
+---
+
+## See also
+
+- [Schedules](/docs/schedules)
+- [Memory](/docs/memory)
+- [Connections & channels](/docs/integrations)
