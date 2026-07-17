@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { DocsSidebar } from "./DocsSidebar";
 
-const GITHUB = "https://github.com/ianborders/eve-studio";
-const DOWNLOAD = "https://github.com/ianborders/eve-studio/releases/latest";
+const GITHUB = "https://github.com/KybernesisAI/eve-studio";
+const DOWNLOAD = "https://github.com/KybernesisAI/eve-studio/releases/latest";
 
 export const metadata: Metadata = {
   title: "Docs — Eve Studio",

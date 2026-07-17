@@ -1,8 +1,8 @@
 import Image from "next/image";
 import type { ReactElement } from "react";
 
-const GITHUB = "https://github.com/ianborders/eve-studio";
-const DOWNLOAD = "https://github.com/ianborders/eve-studio/releases/latest";
+const GITHUB = "https://github.com/KybernesisAI/eve-studio";
+const DOWNLOAD = "https://github.com/KybernesisAI/eve-studio/releases/latest";
 const EVE = "https://eve.dev";
 
 function IconChat({ className = "h-5 w-5" }: { className?: string }) {

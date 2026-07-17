@@ -1,10 +1,10 @@
 # Eve Studio — website
 
-The marketing site and documentation for **[Eve Studio](https://github.com/ianborders/eve-studio)** — the desktop control center for [Eve](https://eve.dev) agents.
+The marketing site and documentation for **[Eve Studio](https://github.com/KybernesisAI/eve-studio)** — the desktop control center for [Eve](https://eve.dev) agents.
 
 **Live:** [evestudio.dev](https://evestudio.dev)
 
-This repo is intentionally separate from the [app repo](https://github.com/ianborders/eve-studio) (the Electron product, shipped as signed GitHub Releases). The site is a Next.js app deployed on Vercel and auto-deploys on push to `main`.
+This repo is intentionally separate from the [app repo](https://github.com/KybernesisAI/eve-studio) (the Electron product, shipped as signed GitHub Releases). The site is a Next.js app deployed on Vercel and auto-deploys on push to `main`.
 
 ## Stack
 
