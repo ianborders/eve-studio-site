@@ -37,6 +37,7 @@ export const DOCS_NAV: DocGroup[] = [
       { title: "Hooks", href: "/docs/hooks" },
       { title: "Connections & channels", href: "/docs/integrations" },
       { title: "Connecting Slack", href: "/docs/slack" },
+      { title: "Connecting Buzz", href: "/docs/buzz" },
       { title: "Schedules", href: "/docs/schedules" },
       { title: "Memory", href: "/docs/memory" },
       { title: "Evals", href: "/docs/evals" },
