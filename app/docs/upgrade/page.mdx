@@ -1,0 +1,65 @@
+export const metadata = {
+  title: "Keep eve current — Eve Studio Docs",
+  description:
+    "How Studio tells you a newer eve is available, upgrades an agent in place with its own package manager, and what to check after a big version jump.",
+};
+
+# Keep eve current
+
+Every agent pins its own `eve` version in `package.json`. Studio compares that against the latest release on npm and, when there's something newer, shows an **↑ &lt;latest&gt; available** chip in the agent header. Clicking it upgrades that agent in place, without a terminal.
+
+## What the chip shows
+
+The header's mono metadata line reads `eve <version>` for the version installed in the agent. When npm has a newer release, an **↑ 0.49.0 available** chip appears next to it. The chip is per agent: two agents on different eve lines each get their own.
+
+## The upgrade modal
+
+Click the chip and Studio opens the **Upgrade eve** modal. It:
+
+1. **Stops the dev server** for the agent, so nothing is running on the old version mid-install.
+2. **Upgrades eve with the agent's own package manager**, detected from the lockfile:
+
+   ```bash
+   pnpm add eve@latest        # pnpm-lock.yaml
+   yarn add eve@latest        # yarn.lock
+   npm install eve@latest     # package-lock.json
+   ```
+
+   On npm, a peer-dependency conflict is retried with `--legacy-peer-deps`.
+3. **Bumps `@kybernesis/arcana`** to its latest release when the agent has it, so the memory extension moves with eve.
+4. **Runs `eve info --json`** and shows the new version alongside Eve's discovery diagnostics (errors and warnings, with the file each one points at).
+5. **Refreshes the structure** in every tab.
+
+The console streams the whole run. When it finishes, hit **Start** to bring the dev server back on the new version.
+
+## Before a big jump
+
+Small upgrades are usually a no-op for your code. Jumping across several minor versions (for example 0.24 or 0.38 → 0.49) can need changes, and `eve info` will name them as diagnostics after the upgrade. The ones Studio users hit most:
+
+- **Node 24.** eve 0.49 requires Node 24 or newer. Studio provisions Node 24 for the local dev server; production runs on Vercel's Node runtime, so make sure the project's Node version setting is 24 too.
+- **Schedule handlers.** The `run` form now receives `{ to, waitUntil, appAuth }` and delivers with `to(channel, target).send(message, { auth: appAuth })`. The older `receive(...)` shape is gone. See [Schedules](/docs/schedules).
+- **Custom channels.** Route handlers receive `{ from, resolveSession, attachSession, to, params, waitUntil, requestIp }`; `from(address).send(...)` starts or continues a session and `attachSession(id).getEventStream()` streams it. The older `{ send, getSession, receive }` context is gone. See [Connections & channels](/docs/integrations).
+- **Built-in tools.** Overrides import the default from `eve/tools/<name>` (for example `eve/tools/todo`) and spread it into your own `defineTool`.
+- **Channel installs.** `eve channels add` no longer exists; channels come from the registry with `eve add channel/<name>`.
+- **Session API.** Follow-up requests no longer carry a `continuationToken`; a session is addressed by its id and controlled with the cancel, compact, clear, and reset routes.
+
+After the modal reports diagnostics, open the file it names in the relevant tab, fix it, and hit reload; Studio re-runs `eve info --json`.
+
+## Extensions pin to an eve line
+
+Extension packages (`@eve/self-modification`, `@kybernesis/arcana`, `@kybernesis/*`) declare the eve versions they support. Upgrade **eve first**, then the extensions. Installing an extension built for 0.49 into an older agent produces a discovery error rather than a working mount, which is why Studio replaces **Enable self-modification** with a **needs eve 0.49+** note on older agents.
+
+## From a terminal
+
+The same thing by hand, in the agent folder:
+
+```bash
+pnpm add eve@latest          # or yarn add / npm install
+eve info                     # expect 0 errors, 0 warnings
+```
+
+## Where to go next
+
+- **[The workspace](/docs/workspace)** — the header chips.
+- **[Troubleshooting](/docs/troubleshooting)** — build-error chips and extension version mismatches.
+- **[Tools, skills & subagents](/docs/capabilities)** — self-modification and its eve requirement.

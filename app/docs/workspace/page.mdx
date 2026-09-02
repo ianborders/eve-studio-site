@@ -15,14 +15,14 @@ The rail lists every agent Studio knows about. At the top:
 - **Add existing** — opens a folder picker to register an Eve app you already have (the folder containing `agent/`).
 - **＋** — scaffolds a new agent. See **[Create an agent](/docs/create-agent)**.
 
-Click an agent to make it **active**. It expands to show that agent's **chat threads**, with an inline **＋ New chat** to start a fresh one. Threads are your saved conversations — see **[Chat](/docs/chat)**.
+Click an agent to make it **active**. It expands to show that agent's **chat threads**, with an inline **＋ New chat** to start a fresh one. Threads are your saved conversations; see **[Chat](/docs/chat)**.
 
 Managing threads:
 
 - **Hover a thread** to reveal an **archive** icon; archiving moves the thread out of the sidebar without deleting it.
 - An **`ARCHIVED · N`** row appears when an agent has archived threads. Click it to open the **Archived** modal, where you can **Reopen** a thread back into the rail or delete it for good.
 
-**Settings** sits at the bottom of the rail.
+**Settings** sits at the bottom of the rail. Its About section states the Studio version and that Eve Studio is an independent project, not an official Vercel product.
 
 ## The per-agent header
 
@@ -30,24 +30,31 @@ Above the tabs, the header shows the active agent's state and its controls:
 
 - **Name** of the agent.
 - A **status pill** — *running* or *stopped*.
-- A **mono metadata line** with the current facts about the agent: its local dev URL and port, its deployed URL and age, and the Eve version — e.g. `local :2000 / deployed · 3d / eve 1.x`.
-- **Start / Stop** — starts or stops the local dev server (`eve dev`). Local **[Chat](/docs/chat)** needs this running.
-- **Deploy** — ships the agent to production (`eve deploy`). See **[Deploy to Vercel](/docs/deploy)**.
+- A **mono metadata line** with the current facts about the agent, in segments:
+  - `eve 0.49.0` — the eve version installed in the agent. When npm has a newer release, an **↑ 0.49.1 available** chip follows it; click it to upgrade in place. See **[Keep eve current](/docs/upgrade)**.
+  - A red **N build errors** chip when `eve info` reports discovery errors. Click it to open Capabilities, where the diagnostics name the file.
+  - `Vercel · linked · deployed 14d ago my-agent.vercel.app`, or `Vercel · not linked`.
+  - `local · :2000` while the dev server runs, or `local · stopped`.
+- **Start / Stop** — starts or stops the local dev server (`eve dev`). Local **[Chat](/docs/chat)** needs this running. If a dev server for the agent is already up, Studio adopts it instead of starting a second one.
+- **Deploy** — ships the agent to production (`eve deploy`). On an agent that isn't linked yet the button reads **Link & deploy** and opens the Environment tab's link flow first. See **[Deploy to Vercel](/docs/deploy)**.
 
 ## The top tab bar
 
 The tabs are the surfaces for building, running, and shipping the agent:
 
-- **[Chat](/docs/chat)** — talk to the agent's local dev server or its production deployment, with streamed tool calls, subagent delegations, reasoning, and approvals.
+- **[Chat](/docs/chat)** — talk to the agent's local dev server or its production deployment, with streamed tool calls, subagent delegations, reasoning, approvals, and session controls (Cancel, Compact, Clear, Reset).
 - **[Instructions](/docs/instructions)** — edit `instructions.md` (the system prompt) and the model and reasoning in `agent.ts`.
-- **[Capabilities](/docs/capabilities)** — browse, create, open, edit, and delete Tools, Skills, Subagents, and Hooks.
-- **[Integrations](/docs/integrations)** — wire up Connections and Channels.
-- **[Memory](/docs/memory)** — see whether the agent uses Eve's native durable sessions or an external long-term brain (Arcana), and configure it.
+- **[Capabilities](/docs/capabilities)** — browse, create, open, edit, and delete Tools, Skills, Subagents, and Hooks; enable self-modification.
+- **[Integrations](/docs/integrations)** — install from the eve registry, run guided channel wizards, and manage Connections and Channels.
+- **[Memory](/docs/memory)** — Eve's session memory, the agent's memory slots, and Kybernesis Arcana for long-term memory, with a brain browser.
 - **[Schedules](/docs/schedules)** — list and create cron jobs that wake the agent (`agent/schedules/*.ts`).
 - **[Deploy](/docs/deploy)** — build, deploy, view logs, and manage environment variables and the sandbox.
 - **[Evals](/docs/evals)** — inspect and run the agent's evaluations.
 
+Studio refreshes what the tabs show with `eve info --json`, which regenerates Eve's discovery and compiled manifest without booting a server. Edit a file on disk and hit the reload button in a tab to see it.
+
 ## Next
 
 - **[Chat](/docs/chat)** — the tab you'll spend the most time in.
+- **[Keep eve current](/docs/upgrade)** — the upgrade chip in the header.
 - **[The agent, explained](/docs/concepts)** — the Eve concepts behind each tab.

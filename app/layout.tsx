@@ -20,7 +20,7 @@ const spaceMono = Space_Mono({
 
 const title = "Eve Studio — the control center for Eve agents";
 const description =
-  "A native desktop app to run, chat with, build, wire up, and deploy every Eve agent on your Mac — no terminal, ever.";
+  "A native desktop app to run, chat with, build, wire up, and deploy every Eve agent on your Mac — no terminal, ever. An independent open-source project; not an official Vercel product.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://evestudio.dev"),

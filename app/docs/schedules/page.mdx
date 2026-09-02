@@ -10,9 +10,9 @@ A schedule starts an agent on its own clock instead of waiting for someone to me
 
 ## How schedules work in Eve
 
-A schedule is authored with `defineSchedule` and carries a **cron expression** plus a **prompt**. The name comes from the file path — `agent/schedules/daily-digest.ts` is the schedule `daily-digest`, and nested directories are fine (`agent/schedules/billing/sweep.ts` → `billing/sweep`).
+A schedule is authored with `defineSchedule` and carries a **cron expression** plus exactly one of a **prompt** (`markdown`) or a **handler** (`run`). The name comes from the file path: `agent/schedules/daily-digest.ts` is the schedule `daily-digest`, and nested directories are fine (`agent/schedules/billing/sweep.ts` → `billing/sweep`).
 
-The simplest form is a fire-and-forget markdown prompt. Eve wakes the agent, runs it on that prompt, and throws away the output — though the agent can still call tools, write to backends, and log along the way:
+The simplest form is a fire-and-forget markdown prompt. Eve wakes the agent, runs it on that prompt, and throws away the output, though the agent can still call tools, write to backends, and log along the way:
 
 ```ts title="agent/schedules/daily-digest.ts"
 import { defineSchedule } from "eve/schedules";
@@ -33,29 +33,59 @@ cron: "0 0 * * 0"
 Sweep stale workflow state.
 ```
 
-Schedules are **root-only**: a declared [subagent](/docs/capabilities) cannot have its own `schedules/` directory. Eve does support a richer handler form (`run`) for schedules that need to deliver output to a channel or compute their arguments at fire time — see the [Eve schedules docs](https://eve.dev) for that API.
+When the schedule needs to deliver to a channel, branch on conditions, or compute its arguments at fire time, use the handler form. It selects a channel target with `to(...)` and sends through the returned handle, wrapped in `waitUntil` so the task stays alive:
+
+```ts title="agent/schedules/critical-alerts.ts"
+import { defineSchedule } from "eve/schedules";
+import slack from "../channels/slack";
+
+export default defineSchedule({
+  cron: "* * * * *",
+  async run({ to, waitUntil, appAuth }) {
+    waitUntil(
+      to(slack, { channelId: "C0123ABC" }).send(
+        "Check for new critical alerts. Report only when there are any.",
+        { auth: appAuth },
+      ),
+    );
+  },
+});
+```
+
+`appAuth` is the app principal, for work the agent does on its own behalf. The agent does not have to deliver on every run; when the prompt makes delivery conditional, Eve tells the agent how to finish without sending anything.
+
+Schedules are **root-only**: a declared [subagent](/docs/capabilities) cannot have its own `schedules/` directory. A mounted extension can contribute schedules, prefixed with its namespace.
 
 ## Cron runs in UTC on Vercel
 
-The `cron` field is a standard 5-field expression — `minute hour day-of-month month day-of-week`, with minute granularity. On a deployed agent, **each schedule becomes a Vercel Cron Job, and Vercel evaluates the expression in UTC.** So `"0 9 * * 1-5"` fires at 09:00 UTC on weekdays — convert your local time to UTC when you pick the fields.
+The `cron` field is a standard 5-field expression (`minute hour day-of-month month day-of-week`) with minute granularity. On a deployed agent, **each schedule becomes a Vercel Cron Job, and Vercel evaluates the expression in UTC.** So `"0 9 * * 1-5"` fires at 09:00 UTC on weekdays; convert your local time to UTC when you pick the fields.
 
 One thing to know while iterating: the local dev server (`eve dev`) does **not** fire schedules on their cron cadence. Schedules only run automatically on the deployed agent. Studio runs the same dev server locally, so a schedule you add shows up in the list immediately but won't tick until you [deploy](/docs/deploy).
 
 ## The Schedules tab
 
-Open an agent and select the **Schedules** top tab. It lists every schedule discovered under `agent/schedules/` — the derived name, its cron expression, and its prompt.
+Open an agent and select the **Schedules** top tab. It lists every schedule discovered under `agent/schedules/`: the derived name, its cron expression, and its prompt (for markdown schedules). Each row also spells the cadence out in both clocks, e.g. **Daily at 10:00 UTC · 17:00 local**, so you can check the UTC conversion at a glance.
 
 To add one, click **New** and provide:
 
 - **A cron expression** — the 5-field UTC schedule (for example `0 9 * * 1-5`).
 - **A markdown prompt** — the instruction that wakes the agent when the schedule fires.
 
-Studio writes the new `agent/schedules/*.ts` file for you and it appears in the list. As with any capability, you can click a schedule row to open the in-app editor and edit its source directly.
+Studio writes the new `agent/schedules/*.ts` file for you and it appears in the list. As with any capability, you can click a schedule row to open the in-app editor and edit its source directly, for example to switch it to the handler form.
 
-Because schedules only run on the deployed agent, the workflow is: add or edit the schedule here, confirm it in the list, then **[Deploy](/docs/deploy)** so the next production tick picks it up. After deploying, Vercel shows the discovered jobs under **Settings → Cron Jobs** and their run history under **Observability → Cron Jobs**.
+To test a schedule without waiting for a production tick, fire it once through the dev server's dispatch route while the agent is running locally:
+
+```bash
+curl -X POST http://localhost:2000/eve/v1/dev/schedules/daily-digest
+# -> { "scheduleId": "daily-digest", "sessionIds": ["..."] }
+```
+
+The route is dev-only and runs the same dispatch path production cron uses.
+
+Because schedules only run on their cadence on the deployed agent, the workflow is: add or edit the schedule here, confirm it in the list, then **[Deploy](/docs/deploy)** so the next production tick picks it up. After deploying, Vercel shows the discovered jobs under **Settings → Cron Jobs** and their run history under **Observability → Cron Jobs**.
 
 ## Where to go next
 
 - **[Deploy to Vercel](/docs/deploy)** — ship the agent so its schedules actually fire.
 - **[Capabilities](/docs/capabilities)** — the tools and subagents a scheduled run leans on.
-- **[Integrations](/docs/integrations)** — deliver schedule output to a channel like Slack.
+- **[Connecting Slack](/docs/slack)** — deliver schedule output to Slack.

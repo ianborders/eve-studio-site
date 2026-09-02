@@ -6,7 +6,7 @@ export const metadata = {
 
 # Connecting Slack
 
-Slack is the most common place people put an Eve agent, and it's the one with the most moving parts. This page walks the whole thing end to end — how it works, the guided setup in Studio, the gotchas, and how to confirm it's live.
+Slack is the most common place people put an Eve agent, and it's the one with the most moving parts. This page walks the whole thing end to end: how it works, the guided setup in Studio, the gotchas, and how to confirm it's live.
 
 ---
 
@@ -14,26 +14,26 @@ Slack is the most common place people put an Eve agent, and it's the one with th
 
 Slack talks to your agent through a **bot**, and that bot is a **Vercel Connect Slack client**. Get this picture straight first and the rest follows.
 
-The bot is **team-level**: you create it once, install it into your Slack workspace, and reuse it across agents. It's *who messages come from* — the identity people @mention and see reply.
+The bot is **team-level**: you create it once, install it into your Slack workspace, and reuse it across agents. It's *who messages come from*, the identity people @mention and see reply.
 
 There are two directions, and they have different requirements:
 
-- **Receiving.** Someone @mentions the bot in a channel or DMs it. The agent **replies in that same thread** automatically. No target needed — the incoming event already says where to answer.
-- **Sending proactively.** The agent starts the conversation — say, a scheduled reminder DM. Here you *must* give a **target**: a Slack channel id (`C…`) that the bot is a member of, or your member id (`U…`) for a direct message. That target lives in an environment variable, e.g. `SLACK_NUDGE_CHANNEL`.
+- **Receiving.** Someone @mentions the bot in a channel or DMs it. The agent **replies in that same thread** automatically. No target needed; the incoming event already says where to answer.
+- **Sending proactively.** The agent starts the conversation, say a scheduled reminder DM. Here you *must* give a **target**: a Slack channel id (`C…`) that the bot is a member of, or your member id (`U…`) for a direct message. That target lives in an environment variable, e.g. `SLACK_NUDGE_CHANNEL`.
 
 ---
 
 ## The guided setup
 
-In Studio, go to **Integrations → Channels → the Slack card → Set up**. It's a 5-step wizard.
+In Studio, go to **Integrations → Channels → the Slack card → Set up**. It's a 5-step wizard. (If you'd rather drive it from the registry, `eve add channel/slack` installs the same channel and runs Eve's own setup flow.)
 
 ### 1. Bot
 
-Create a new Vercel Connect Slack connector, or pick an existing one if you've already got a bot you want to reuse. Then **Open to authorize** — this installs the Eve app into your Slack workspace so the bot actually exists there.
+Create a new Vercel Connect Slack connector, or pick an existing one if you've already got a bot you want to reuse. Then **Open to authorize**: this installs the Eve app into your Slack workspace so the bot actually exists there.
 
 ### 2. Connect
 
-Attach that bot's triggers to *this* agent (at `/eve/v1/slack`), so Slack delivers its events here and not to some other agent. This part is **per-agent** — the bot is shared, but the wiring that says "send this bot's events to this project" is specific to the agent you're setting up.
+Attach that bot's triggers to *this* agent (at `/eve/v1/slack`), so Slack delivers its events here and not to some other agent. This part is **per-agent**: the bot is shared, but the wiring that says "send this bot's events to this project" is specific to the agent you're setting up.
 
 ### 3. Channel
 
@@ -41,7 +41,7 @@ Studio writes `agent/channels/slack.ts`, wired to the bot you chose.
 
 ### 4. Target
 
-Save your Slack member id (`U…`) or a channel id (`C…`) to an environment variable so proactive and scheduled messages have somewhere to go. Set it on **all environments** — **Production** for the deployed cron, and **Development** so the local **Test** button works.
+Save your Slack member id (`U…`) or a channel id (`C…`) to an environment variable so proactive and scheduled messages have somewhere to go. Set it on **all environments**: **Production** for the deployed cron, and **Development** so the local **Test** button works.
 
 ### 5. Ship
 
@@ -51,7 +51,7 @@ Deploy. This matters: **Slack only reaches the *deployed* agent, never local dev
 
 ## The channel file
 
-The file Studio writes is small — it just points the Slack channel at the connector for your bot:
+The file Studio writes is small. It just points the Slack channel at the connector for your bot:
 
 ```ts title="agent/channels/slack.ts"
 import { connectSlackCredentials } from "@vercel/connect/eve";
@@ -62,18 +62,18 @@ export default slackChannel({
 });
 ```
 
-And a scheduled DM that sends *proactively* — note it reads the target from an env var and passes it as `target`:
+And a scheduled DM that sends *proactively*. The handler reads the target from an env var and hands the prompt to the Slack channel with `to(...)`:
 
 ```ts title="agent/schedules/reminder.ts"
 import { defineSchedule } from "eve/schedules";
-import slack from "../channels/slack.js";
+import slack from "../channels/slack";
 
 export default defineSchedule({
   cron: "0 2 * * 5", // Fri 09:00 Asia/Bangkok (UTC+7) = 02:00 UTC
-  run({ receive, waitUntil, appAuth }) {
+  async run({ to, waitUntil, appAuth }) {
     const channelId = process.env.SLACK_NUDGE_CHANNEL;
     if (!channelId) return;
-    waitUntil(receive(slack, { message: "Remind me to stretch.", target: { channelId }, auth: appAuth }));
+    waitUntil(to(slack, { channelId }).send("Remind me to stretch.", { auth: appAuth }));
   },
 });
 ```
@@ -84,9 +84,9 @@ export default defineSchedule({
 
 These cost real debugging time. Call them out for yourself before you go hunting.
 
-- **The channel file must reference the exact bot you're DMing.** If `agent/channels/slack.ts` points at a different connector than the one delivering events, Slack events fail signature verification and are **dropped silently** — the bot looks online but never replies. No error, no log, just nothing.
+- **The channel file must reference the exact bot you're DMing.** If `agent/channels/slack.ts` points at a different connector than the one delivering events, Slack events fail signature verification and are **dropped silently**. The bot looks online but never replies. No error, no log, just nothing.
 - **The bot is one identity across every agent it's attached to.** Attach the same connector to three agents and they all speak as the same bot. If you don't want agents sharing an identity, give each its own connector.
-- **The Channels tab shows the real wiring.** It tells you which **bot** (`bot slack/<uid>`) a channel uses, and shows a **"connected to this agent"** badge — green when the connector is actually attached to this agent's project, versus "not attached — finish setup" when it isn't. Trust the badge over your memory of what you set up.
+- **The Channels tab shows the real wiring.** It tells you which **bot** (`bot slack/<uid>`) a channel uses, and shows a **"connected to this agent"** badge: green when the connector is actually attached to this agent's project, versus "not attached — finish setup" when it isn't. Trust the badge over your memory of what you set up.
 - **There's a Remove button** on each channel to delete it.
 
 ---
@@ -95,7 +95,7 @@ These cost real debugging time. Call them out for yourself before you go hunting
 
 @mention the bot in a channel, or DM it. If it replies, Slack is live. That's the whole test.
 
-One thing that trips people up: asking the agent in **Studio chat** *"are you connected to Slack?"* will always say no. That's expected, not a failure. A channel is a **transport**, not a tool the agent sees during a chat turn — the agent has no way to introspect it from inside a conversation. Test Slack from Slack, not from chat.
+One thing that trips people up: asking the agent in **Studio chat** *"are you connected to Slack?"* will always say no. That's expected, not a failure. A channel is a **transport**, not a tool the agent sees during a chat turn; the agent has no way to introspect it from inside a conversation. Test Slack from Slack, not from chat.
 
 ---
 

@@ -1,10 +1,22 @@
 # Eve Studio — website
 
-The marketing site and documentation for **[Eve Studio](https://github.com/KybernesisAI/eve-studio)** — the desktop control center for [Eve](https://eve.dev) agents.
+The marketing site and documentation for **[Eve Studio](https://github.com/KybernesisAI/eve-studio)** — the desktop control center for [Eve](https://eve.dev) agents. Eve Studio is an independent open-source project by Kybernesis, not an official Vercel product; Eve is Vercel's open-source agent framework.
 
 **Live:** [evestudio.dev](https://evestudio.dev)
 
 This repo is intentionally separate from the [app repo](https://github.com/KybernesisAI/eve-studio) (the Electron product, shipped as signed GitHub Releases). The site is a Next.js app deployed on Vercel and auto-deploys on push to `main`.
+
+## What the site documents
+
+The docs cover Studio `v0.3.x` against eve 0.49+:
+
+- **Chat** with session controls (Cancel turn, Compact, Clear, Reset), local or deployed.
+- **Instructions & model** — `instructions.md` editor; model and reasoning via `eve set`.
+- **Capabilities** — tools, skills, subagents, hooks; the self-modification toggle.
+- **Integrations** — the eve registry gallery (`eve add`), guided wizards for Slack, Discord, Telegram, Teams, Twilio, GitHub, Linear, and Buzz, connections, and Vercel Connect.
+- **Memory** — Eve session memory, memory slots (file memory, Supermemory), and Kybernesis Arcana as an official eve extension with a brain browser.
+- **Keep eve current** — the header's version, upgrade, and build-error chips; in-place eve upgrade.
+- **Schedules, Evals, Deploy** (`eve deploy --non-interactive --yes`), and Troubleshooting.
 
 ## Stack
 

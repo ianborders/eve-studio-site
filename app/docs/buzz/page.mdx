@@ -1,38 +1,43 @@
 export const metadata = {
   title: "Connecting Buzz — Eve Studio Docs",
   description:
-    "Wire an Eve agent into a Buzz workspace as a first-class member — identity, admission, profile, the inbound bridge, and how to verify the agent listens and replies.",
+    "Wire an Eve agent into a Buzz workspace as a first-class member — identity, admission, profile, the inbound bridge, how to verify the agent listens and replies, and Eve's official ACP adapter for local agents.",
 };
 
 # Connecting Buzz
 
-[Buzz](https://github.com/block/buzz) is Block's open-source, agent-native team chat. It's built on a Nostr relay, and its defining idea is that **agents are members, not bots**: your Eve agent gets its own cryptographic identity, profile, channel memberships, and audit trail — the same surface area as a human teammate. Eve Studio is the first agent tool that can put an Eve agent into a Buzz workspace end to end.
+[Buzz](https://github.com/block/buzz) is Block's open-source, agent-native team chat. It's built on a Nostr relay, and its defining idea is that **agents are members, not bots**: your Eve agent gets its own cryptographic identity, profile, channel memberships, and audit trail, the same surface area as a human teammate.
+
+There are two ways to put an Eve agent in Buzz, and they solve different problems:
+
+- **Studio's Buzz channel** (this page) gives a **deployed** agent its own identity in a Buzz workspace. Teammates DM or @mention it and the production agent answers, whether or not your laptop is open.
+- **Eve's official Buzz integration**, `@eve/buzz-acp-adapter`, exposes a **local** eve app to Buzz Desktop over ACP. It's the quickest way to talk to the agent you're iterating on from Buzz on the same machine. See [the ACP adapter](#eves-official-acp-adapter) at the end of this page.
 
 ---
 
 ## The mental model
 
-Three things make Buzz different from every other channel in Studio:
+Three things make Studio's Buzz channel different from every other channel in Studio:
 
-- **Identity is a keypair.** There are no bot tokens. Studio generates a Nostr keypair for the agent; the public half (the `npub…` string) *is* the agent's identity. The workspace owner **admits** that identity as a member — and can rename, audit, or remove it any time, like any member.
-- **Outbound is serverless.** When the deployed agent replies, it signs a Buzz message with its own key and submits it straight to the relay over HTTPS. No middleman — messages are attributable to the agent forever.
-- **Inbound needs a listener.** Hosted Buzz relays (`*.communities.buzz.xyz`) don't yet push events out to external services, so Studio ships a small **bridge** that watches the relay and forwards DMs and @mentions to your deployed agent's `/inbound` route. The bridge never generates a word — the deployed agent is always the brain. Self-hosted relays with workflow webhooks enabled can skip the bridge entirely.
+- **Identity is a keypair.** There are no bot tokens. Studio generates a Nostr keypair for the agent; the public half (the `npub…` string) *is* the agent's identity. The workspace owner **admits** that identity as a member, and can rename, audit, or remove it any time, like any member.
+- **Outbound is serverless.** When the deployed agent replies, it signs a Buzz message with its own key and submits it straight to the relay over HTTPS. No middleman; messages are attributable to the agent forever.
+- **Inbound needs a listener.** Hosted Buzz relays (`*.communities.buzz.xyz`) don't yet push events out to external services, so Studio ships a small **bridge** that watches the relay and forwards DMs and @mentions to your deployed agent's `/inbound` route. The bridge never generates a word; the deployed agent is always the brain. Self-hosted relays with workflow webhooks enabled can skip the bridge entirely.
 
 Direction summary:
 
 - **Receiving.** Someone DMs the agent, or @mentions it in a channel it's a member of. The bridge forwards the message; the agent replies into the same conversation, with per-conversation context.
-- **Sending proactively.** Schedules and tools can post using the channel's target — a Buzz **channel UUID** (a DM conversation is also a channel UUID under the hood).
+- **Sending proactively.** Schedules and tools can post using the channel's target, a Buzz **channel UUID** (a DM conversation is also a channel UUID under the hood).
 
 ---
 
 ## Finding your relay URL
 
-The wizard's first real question is the **relay URL** — the address of your workspace's Buzz relay:
+The wizard's first real question is the **relay URL**, the address of your workspace's Buzz relay:
 
-- **Hosted Buzz** — your workspace lives at a subdomain of `communities.buzz.xyz`, so the relay URL is `wss://<workspace>.communities.buzz.xyz`. The `<workspace>` part is the community name you signed up with — it's the domain you see in workspace invite links, and workspace admins can read the full URL in the Buzz desktop app's community settings.
+- **Hosted Buzz** — your workspace lives at a subdomain of `communities.buzz.xyz`, so the relay URL is `wss://<workspace>.communities.buzz.xyz`. The `<workspace>` part is the community name you signed up with; it's the domain you see in workspace invite links, and workspace admins can read the full URL in the Buzz desktop app's community settings.
 - **Self-hosted** — the URL of your `buzz-relay` deployment, e.g. `wss://buzz.yourteam.com`. If you run the relay, you know this one.
 
-Either `wss://` or `https://` works — Studio normalizes it.
+Either `wss://` or `https://` works; Studio normalizes it.
 
 ---
 
@@ -42,28 +47,28 @@ Either `wss://` or `https://` works — Studio normalizes it.
 
 ### 1. How it works
 
-The explainer — the member model and the bridge, honestly stated.
+The explainer: the member model and the bridge, honestly stated.
 
 ### 2. Identity
 
-Paste the relay URL and hit **Generate identity**. Studio creates the keypair (the private key stays in Studio's main process — it never touches the renderer or your repo) and shows the agent's `npub…`.
+Paste the relay URL and hit **Generate identity**. Studio creates the keypair (the private key stays in Studio's main process; it never touches the renderer or your repo) and shows the agent's `npub…`.
 
-Copy it, open your **Buzz app**, and add that member to the workspace (workspace → invite / add member). Then click **Verify membership** — Studio probes the relay with the agent's own key and flips green when the admission is live.
+Copy it, open your **Buzz app**, and add that member to the workspace (workspace → invite / add member). Then click **Verify membership**: Studio probes the relay with the agent's own key and flips green when the admission is live.
 
-> Admission ≠ channel membership. Right after admitting, the agent is a member of **zero channels** — that's normal. It joins conversations when someone DMs it or adds it to a channel.
+> Admission ≠ channel membership. Right after admitting, the agent is a member of **zero channels**. That's normal. It joins conversations when someone DMs it or adds it to a channel.
 
 ### 3. Profile
 
-Display name, bio, and an avatar image. Studio uploads the avatar to the relay's media store and publishes the agent's profile — so it shows up in the member list fully dressed before it ever speaks. The display name also matters functionally: `@DisplayName` mentions are how the agent gets summoned in channels.
+Display name, bio, and an avatar image. Studio uploads the avatar to the relay's media store and publishes the agent's profile, so it shows up in the member list fully dressed before it ever speaks. The display name also matters functionally: `@DisplayName` mentions are how the agent gets summoned in channels.
 
-You can edit all of this later without re-running the wizard — the configured Buzz row has a **Profile** button.
+You can edit all of this later without re-running the wizard; the configured Buzz row has a **Profile** button.
 
 ### 4. Wire
 
 One click writes everything the deployed agent needs:
 
 - `BUZZ_RELAY_URL`, `BUZZ_PRIVATE_KEY`, `BUZZ_WEBHOOK_SECRET`, `BUZZ_AGENT_NAME` → Vercel env (all environments)
-- `agent/channels/buzz.ts` — the channel file (outbound posting + the secret-gated `/inbound` route)
+- `agent/channels/buzz.ts` — a custom channel (outbound posting + the secret-gated `/inbound` route, built on `defineChannel` and `from(address).send(...)`)
 - `nostr-tools` added to the agent's dependencies
 
 ### 5. Bridge
@@ -75,7 +80,7 @@ The inbound listener. Studio prefills the target from your production deployment
 
 Studio also detects your Vercel **Deployment Protection** bypass secret automatically so the bridge can reach the deployed route.
 
-If you haven't deployed yet, the target will be empty — skip ahead, deploy, then come back and start the bridge.
+If you haven't deployed yet, the target will be empty. Skip ahead, deploy, then come back and start the bridge.
 
 ### 6. Ship
 
@@ -87,21 +92,36 @@ Deploy, then DM the agent in Buzz.
 
 1. The agent shows **online** in the member list (the bridge heartbeats presence).
 2. **DM it.** Within ~5–10 seconds the deployed agent replies in the DM.
-3. **@mention it** in a channel it's a member of — same deal, reply in-channel.
+3. **@mention it** in a channel it's a member of. Same deal, reply in-channel.
 4. The Channels list in Studio shows **connected to this agent** (member + bridge running).
 
 ---
 
 ## Gotchas
 
-- **Messages sent before the bridge started won't be replayed.** By design — no stale-reply storms. Send a fresh message after the bridge is up.
-- **"Not admitted yet" right after adding the member** usually means the admission hasn't been done in the *right workspace* — the relay URL and the workspace you added the member to must match.
+- **Messages sent before the bridge started won't be replayed.** By design, to avoid stale-reply storms. Send a fresh message after the bridge is up.
+- **"Not admitted yet" right after adding the member** usually means the admission hasn't been done in the *right workspace*. The relay URL and the workspace you added the member to must match.
 - **Deployment Protection.** If your Vercel project has SSO protection (the default for previews), the bridge needs the protection-bypass secret. Studio fills it automatically when your Vercel CLI is logged in; check the bridge log if forwards return 401.
 - **Bridge log.** `~/Library/Application Support/eve-studio/buzz-bridge/<agent>.log` shows connections and every forward with its HTTP status. First stop for any "it's not answering."
-- **The agent replies from the deployed brain only.** Local dev is never reachable from Buzz — deploy to test, like Slack and Telegram.
+- **The agent replies from the deployed brain only.** Local dev is never reachable from Buzz through this channel. Deploy to test, like Slack and Telegram, or use the ACP adapter below for a local agent.
 
 ---
 
 ## Removing it
 
 Delete the channel row in Studio (removes `channels/buzz.ts`; redeploy to take effect), uninstall the background bridge from the Bridge step, and remove the member in your Buzz app. The identity can't post once its membership is revoked.
+
+---
+
+## Eve's official ACP adapter
+
+Eve also ships a Buzz integration of its own: [`@eve/buzz-acp-adapter`](https://eve.dev/integrations/buzz). It registers eve as a custom **harness** with Buzz Desktop over the Agent Client Protocol, so Buzz talks to an eve app on your machine (or a deployed URL) the way it talks to any coding agent. It's a global install, because Buzz invokes it whenever it interfaces with eve:
+
+```bash
+npm install --global @eve/buzz-acp-adapter
+eve-buzz-acp-adapter install ./path/to/agent   # or a deployed URL
+```
+
+Then in Buzz's AI configuration set the harness to **eve** (for a local app, set parallelism to `1` and add the credentials the app needs). The adapter defaults to Buzz's owner-only author gate; a shared service agent has to opt in explicitly before other accepted senders can use the same eve identity and connections.
+
+Use the adapter when you want Buzz Desktop to drive the agent you're building locally. Use Studio's channel when the agent should live in the workspace as a member with its own identity, reachable by everyone, from the deployed brain.

@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Create an agent — Eve Studio Docs",
   description:
-    "Scaffold a new Eve agent from Studio with the ＋ flow, or register one you already have with Add existing.",
+    "Scaffold a new Eve agent from Studio with the ＋ flow, pick its model, or register one you already have with Add existing.",
 };
 
 # Create an agent
@@ -13,9 +13,10 @@ An [Eve](https://eve.dev) agent is a folder. Studio can scaffold a fresh one for
 Click **＋** at the top of the left rail. Studio asks for:
 
 - **A name** — becomes the agent's folder and how it's listed in the rail.
-- **Web Chat (optional)** — check this to include the Web Chat application, so the agent ships a browser chat UI alongside the built-in HTTP channel. Leave it off for a headless agent you'll reach over HTTP or a platform channel.
+- **A model (optional)** — the AI Gateway model id the agent starts on. Leave it blank for Eve's default, `openai/gpt-5.6-luna-fast`. You can change it any time from the [Model view](/docs/instructions).
+- **Web Chat (optional)** — check this to include the Web Chat application, so the agent ships a browser chat UI alongside the built-in HTTP channel. Leave it off for a headless agent you'll reach over HTTP or a platform channel. You can add Web Chat later from Integrations with `eve add channel/web`.
 
-When you confirm, Studio runs `eve init` on the provisioned runtime and streams a **live log** as it works — you watch the scaffold, dependency install, and Git init happen in order, with a "working…" spinner and an elapsed timer.
+When you confirm, Studio runs `eve init <name>` on the provisioned Node 24 runtime and streams a **live log** as it works. You watch the scaffold, dependency install, and Git init happen in order, with a "working…" spinner and an elapsed timer.
 
 > **First run takes a minute.** Creating your first agent downloads Eve and its dependencies. That's a one-time cost; later agents reuse the cached runtime and packages.
 
@@ -27,25 +28,29 @@ When it finishes, the new agent appears in the rail, already active, and you lan
 
 ```
 my-agent/
-└── agent/
-    ├── instructions.md      # the system prompt
-    ├── agent.ts             # model + config
-    ├── tools/               # typed actions the agent can call
-    ├── skills/              # load-on-demand instructions
-    ├── subagents/           # specialist child agents
-    ├── hooks/               # observe the runtime event stream
-    ├── connections/         # MCP / OpenAPI integrations
-    ├── channels/            # where the agent is surfaced (Slack, web, …)
-    └── schedules/           # cron-driven jobs
+├── package.json
+├── agent/
+│   ├── instructions.md      # the system prompt
+│   ├── agent.ts             # model + config
+│   ├── channels/eve.ts      # the built-in HTTP channel
+│   ├── tools/               # typed actions the agent can call
+│   ├── skills/              # load-on-demand instructions
+│   ├── subagents/           # specialist child agents
+│   ├── hooks/               # observe the runtime event stream
+│   ├── connections/         # MCP / OpenAPI integrations
+│   ├── schedules/           # cron-driven jobs
+│   ├── memory/              # long-term memory slots
+│   └── extensions/          # mounted extension packages
+└── evals/                   # scored test cases
 ```
 
-Eve discovers every capability from the filesystem — a tool at `agent/tools/get_weather.ts` *is* the tool `get_weather`. A minimal agent is just `instructions.md` and `agent.ts`; the other folders fill in as you add capabilities. Every app also ships the built-in HTTP channel at `agent/channels/eve.ts`, whether or not you added Web Chat.
+Eve discovers every capability from the filesystem: a tool at `agent/tools/get_weather.ts` *is* the tool `get_weather`. A minimal agent is just `instructions.md`, `agent.ts`, and the built-in HTTP channel at `agent/channels/eve.ts`; the other folders fill in as you add capabilities.
 
 For the full mental model behind each folder and how the tabs map onto it, read **[The agent, explained](/docs/concepts)**.
 
 ## Add an agent you already have
 
-If you built an agent elsewhere — cloned a repo, scaffolded with the Eve CLI, or already work in Eve — use **Add existing** on the left rail. It opens a folder picker; choose the app root (the folder containing `agent/`) and Studio registers it as-is. Nothing in the folder is modified.
+If you built an agent elsewhere (cloned a repo, scaffolded with the Eve CLI, or already work in Eve) use **Add existing** on the left rail. It opens a folder picker; choose the app root (the folder containing `agent/`) and Studio registers it as-is. Nothing in the folder is modified. Studio is built for eve 0.49 and newer; older agents still open, but some tabs depend on the 0.49 manifest and CLI.
 
 ## Next
 

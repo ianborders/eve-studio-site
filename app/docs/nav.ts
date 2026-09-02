@@ -22,11 +22,8 @@ export const DOCS_NAV: DocGroup[] = [
     items: [
       { title: "The workspace", href: "/docs/workspace" },
       { title: "Chat", href: "/docs/chat" },
+      { title: "Keep eve current", href: "/docs/upgrade" },
     ],
-  },
-  {
-    group: "Evolve",
-    items: [{ title: "Evolve", href: "/docs/evolve" }],
   },
   {
     group: "Eve concepts",

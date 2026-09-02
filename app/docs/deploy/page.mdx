@@ -1,35 +1,43 @@
 export const metadata = {
   title: "Deploy to Vercel — Eve Studio Docs",
   description:
-    "Build and deploy an Eve agent to Vercel from Studio's Deploy tab, manage its environment, and chat against the deployed agent.",
+    "Build and deploy an Eve agent to Vercel from Studio's Deploy tab with eve deploy, manage its environment, and chat against the deployed agent.",
 };
 
 # Deploy to Vercel
 
-Deploying ships your agent to production, where it runs as **Vercel Functions** and its [schedules](/docs/schedules) actually fire. Studio's **Deploy** tab drives the whole thing — build, deploy, environment, and the logs — from one place.
+Deploying ships your agent to production, where it runs as **Vercel Functions** with durable Workflow runs, and its [schedules](/docs/schedules) actually fire. Studio's **Deploy** tab drives the whole thing (build, deploy, environment, and the logs) from one place.
 
 ## Before you deploy
 
-Deploying requires the agent to be **connected to Vercel**. That's the same link that lets the model run: it associates the agent's folder with a Vercel project and pulls the AI Gateway credential. If you haven't done it yet, do it first — see **[Connect to Vercel](/docs/connect-vercel)**. Without a linked project there's nothing to deploy to.
+Deploying requires the agent to be **connected to Vercel**. That's the same link that lets the model run: it associates the agent's folder with a Vercel project and pulls the AI Gateway credential. If you haven't done it yet, the header button reads **Link & deploy** and opens the Environment tab's link flow first; see **[Connect to Vercel](/docs/connect-vercel)**. Without a linked project there's nothing to deploy to. Once linked, the header's metadata line reads `Vercel · linked · deployed 14d ago <host>`.
 
 ## Build and Deploy
 
 Open an agent and select the **Deploy** top tab. Two buttons drive the pipeline:
 
-- **Build** — compiles the agent locally so you can catch errors before shipping.
-- **Deploy** — runs `eve deploy`, which builds and pushes the agent to your linked Vercel project as a production deployment.
+- **Build** — runs `eve build` locally so you can catch errors before shipping.
+- **Deploy** — runs Eve's own deploy command in its non-interactive form:
 
-Both stream their output into a **command-output console** in the tab. Deploys take a while — installing, building, and uploading — so the console shows a live **"working…" indicator with an elapsed timer** while a step runs, and prints the result (including the deployment URL) when it finishes. Alongside it, a **dev-server logs pane** shows the local `eve dev` server's output, which is where you look when the local agent misbehaves.
+  ```bash
+  eve deploy --non-interactive --yes
+  ```
+
+  `eve deploy` installs dependencies, runs `vercel deploy --prod`, and pulls the project environment afterward. `--yes` confirms the production deployment up front; `--non-interactive` means it never opens a picker or a browser, which is why the project has to be linked first.
+
+Both stream their output into a **command-output console** in the tab. Deploys take a while (installing, building, and uploading), so the console shows a live **"working…" indicator with an elapsed timer** while a step runs, and prints the result (including the deployment URL) when it finishes. Alongside it, a **dev-server logs pane** shows the local `eve dev` server's output, which is where you look when the local agent misbehaves.
+
+The header's **Deploy** button runs the same command.
 
 ## Environment and Sandbox
 
 Near the deploy controls, the **Environment** panel manages the agent's configuration:
 
-- **Edit `.env` / `.env.local`** — the local environment files the dev server reads.
+- **Edit `.env` / `.env.local`** — the local environment files the dev server reads. Values are masked by default; flip **Show values** to reveal them, which is also required before editing. A running `eve dev` reloads the files automatically.
 - **Pull / push Vercel env vars** — sync environment variables between your machine and the linked Vercel project. Pull brings the project's variables down (this is how the AI Gateway token lands locally); push sends local values up so the deployed agent has them.
-- **Secrets** — keys like API tokens live here as environment variables, never in code. (For example, an [Arcana memory](/docs/memory) key is stored as an env var and pushed to the project.)
+- **Secrets** — keys like API tokens live here as environment variables, never in code. Studio writes some for you: the [Arcana](/docs/memory) key and workspace, channel credentials from the guided wizards, and variables declared by registry items you install.
 
-A **Sandbox** section sits alongside — the isolated runtime the agent uses for file and command work.
+A **Sandbox** section sits alongside: the isolated runtime the agent uses for file and command work, and whether it's Eve's default backend (Vercel Sandbox on Vercel) or one you authored in `agent/sandbox.ts`.
 
 ## Chat against the deployed agent
 
@@ -38,11 +46,11 @@ Once deployed, you don't need to leave Studio to try it. In the **[Chat](/docs/c
 - **Local** — the `eve dev` server on your machine.
 - **Deployed** — the production agent you just shipped.
 
-Flip Target to **Deployed** and your messages hit the live Vercel deployment, streaming the same turns, tool calls, and approvals as local chat.
+Flip Target to **Deployed** and your messages hit the live Vercel deployment, streaming the same turns, tool calls, and approvals as local chat. Session controls (Cancel, Compact, Clear, Reset) work against the deployed agent too.
 
 ### Protected deployments
 
-If your Vercel project has **Deployment Protection** enabled, the production URL is gated and Studio can't reach it by default. Generate a **Protection Bypass token** in your Vercel project settings and paste it into Studio, so the app can authenticate to the protected deployment and chat against it.
+If your Vercel project has **Deployment Protection** enabled, the production URL is gated and Studio can't reach it by default. Generate a **Protection Bypass for Automation** secret in your Vercel project settings and paste it into Studio; the app sends it as the `x-vercel-protection-bypass` header so it can authenticate to the protected deployment and chat against it. The Buzz bridge uses the same secret.
 
 ## Where to go next
 

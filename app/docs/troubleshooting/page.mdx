@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Troubleshooting — Eve Studio Docs",
   description:
-    "Common Eve Studio symptoms and their fixes: model, Vercel connection, agent startup, deployed chat, and capability discovery.",
+    "Common Eve Studio symptoms and their fixes: model, Vercel connection, agent startup, deployed chat, sessions, registry installs, and capability discovery.",
 };
 
 # Troubleshooting
@@ -14,37 +14,75 @@ A practical list of things that go wrong and how to fix them. Each entry is a sy
 | --- | --- |
 | The model won't respond | The agent has no model credential yet. Connect it to Vercel. |
 | "Multiple teams found" | Pick a team in the Connect banner. |
-| Create-agent fails on a fresh machine | Make sure you're online — the app is provisioning Node and Eve. |
-| The agent won't start | Check the dev-server logs in the Deploy tab. |
-| Deployed chat is unreachable | Paste the deployment's Protection Bypass token. |
-| A new tool or hook doesn't appear | Reload the capability list or restart the agent. |
+| Create-agent fails on a fresh machine | Make sure you're online; the app is provisioning Node 24 and Eve. |
+| The agent won't start | Check the dev-server logs in the Deploy tab, or run `eve info`. |
+| A red "N build errors" chip in the header | Click it; Capabilities shows the diagnostics and the file each points at. |
+| Self-modification enabled on an older eve | Upgrade eve, or remove the subagent and its dependency. |
+| "↑ x.y.z available" chip | A newer eve is on npm. Click to upgrade in place. |
+| Deployed chat is unreachable | Paste the deployment's Protection Bypass secret. |
+| `409 session_not_active` in the console | Normal right after a session starts; Studio retries. Reset the thread if it persists. |
+| `eve add` failed with `dependency_install` | A peer-dependency conflict; Studio falls back to a direct install for Arcana. |
+| `eve add` exited with code 2 | Setup needs an answer. Run the printed continuation command. |
+| A new tool or hook doesn't appear | Reload the tab; Studio re-runs `eve info --json`. |
 
 ## The model won't respond
 
-An Eve agent's model routes through the Vercel AI Gateway, so it needs a credential before it can reply. If chat sends but nothing comes back — and you see a **Connect to Vercel** banner — the agent isn't linked yet. Walk the in-app flow to sign in, link the project, and pull the token. See **[Connect to Vercel](/docs/connect-vercel)**.
+An Eve agent's model routes through the Vercel AI Gateway, so it needs a credential before it can reply. If chat sends but nothing comes back, and you see a **Connect to Vercel** banner, the agent isn't linked yet. Walk the in-app flow to sign in, link the project, and pull the token. See **[Connect to Vercel](/docs/connect-vercel)**.
 
 ## "Multiple teams found"
 
-This appears during the Vercel connect flow when your account belongs to more than one team, and Studio doesn't know which one owns this agent. **Pick the team in the Connect banner** and the flow continues — it runs `vercel link` and `vercel env pull` against that team.
+This appears during the Vercel connect flow when your account belongs to more than one team, and Studio doesn't know which one owns this agent. **Pick the team in the Connect banner** and the flow continues against that team.
 
 ## Create-agent fails on a fresh machine
 
-On a machine that has never run Studio, the app has to **provision its own Node runtime and install Eve** (`npx eve@latest`) before it can scaffold anything. This step downloads packages, so it needs a network connection. If create-agent fails on a brand-new machine, **make sure you're online** and try again — the first run takes a minute while it fetches everything; later runs reuse what's already there. Watch the "working…" spinner and elapsed timer to confirm it's still making progress.
+On a machine that has never run Studio, the app has to **provision its own Node 24 runtime and install Eve** (`npx eve@latest`) before it can scaffold anything. This step downloads packages, so it needs a network connection. If create-agent fails on a brand-new machine, **make sure you're online** and try again. The first run takes a minute while it fetches everything; later runs reuse what's already there. Watch the "working…" spinner and elapsed timer to confirm it's still making progress.
 
 ## The agent won't start
 
-If the agent's status pill stays **stopped** or flips back after you hit Start, the local `eve dev` server failed to boot — usually a code or config error in the agent folder. **Open the [Deploy](/docs/deploy) tab and read the dev-server logs pane**, which streams that server's output and shows the actual error. Fix what it reports (often a type error or a missing environment variable) and start again.
+If the agent's status pill stays **stopped** or flips back after you hit Start, the local `eve dev` server failed to boot, usually a code or config error in the agent folder. **Open the [Deploy](/docs/deploy) tab and read the dev-server logs pane**, which streams that server's output and shows the actual error. Studio's structure refresh runs `eve info --json`, which reports Eve's discovery diagnostics (errors and warnings with the file that caused them); running `eve info` in the agent folder shows the same report. Fix what it reports (often a type error, a missing environment variable, or a capability file with the wrong shape) and start again.
+
+## A red "N build errors" chip in the header
+
+Studio runs `eve info --json` whenever it refreshes structure, and Eve's discovery diagnostics come back with it. When any of them is an error, the header shows a red **N build errors** chip; the dev server may still start, but the offending capability isn't loaded. Click the chip to open **Capabilities**, where each diagnostic names the file and the problem (a missing `description`, an export with the wrong shape, an extension whose eve peer range doesn't match). Fix it, hit reload, and the chip clears. Running `eve info` in the agent folder prints the same report.
+
+## Self-modification enabled on an older eve
+
+`@eve/self-modification` is pinned to the eve 0.49 line. If it was installed into an agent on an older eve, `eve info` reports a discovery error for `agent/subagents/self-modification/` and the build-error chip appears. Two fixes:
+
+- **Upgrade eve** with the header chip (see [Keep eve current](/docs/upgrade)); the subagent starts working once eve matches.
+- **Remove it**: delete `agent/subagents/self-modification/` and uninstall the `@eve/self-modification` dependency (`pnpm remove @eve/self-modification`, or the npm/yarn equivalent).
+
+Studio now checks the eve version before offering Enable, so this only affects agents set up earlier.
 
 ## Deployed chat is unreachable
 
-If chat works against **Local** but a **Deployed** target can't connect, the production deployment is almost certainly behind **Vercel Deployment Protection**. Generate a **Protection Bypass token** in your Vercel project settings and **paste it into Studio** so the app can authenticate to the protected URL. See **[Deploy to Vercel](/docs/deploy)**.
+If chat works against **Local** but a **Deployed** target can't connect, the production deployment is almost certainly behind **Vercel Deployment Protection**. Generate a **Protection Bypass for Automation** secret in your Vercel project settings and **paste it into Studio** so the app can authenticate to the protected URL. See **[Deploy to Vercel](/docs/deploy)**.
+
+## `409 session_not_active`
+
+Creating a session returns as soon as Eve's Workflow accepts the run, before the session is ready to take a second message. If a follow-up arrives in that window, or targets a session that has been reset or has finished, Eve answers `409` with `{ "code": "session_not_active" }`. Studio waits for the `session.waiting` event before sending follow-ups and retries a 409 a few times with backoff, so you normally never see it. If a thread keeps failing this way, its session has been retired (for example by **Reset session**, or by a `/new` from another client on the same address). Start a **New chat**; the old thread stays readable.
+
+## `eve add` failed with `dependency_install`
+
+A registry install runs your package manager to add the item's dependencies. When that step fails, `eve add` rolls the install back and reports `failureCode: "dependency_install"`; the console shows the package manager's error. The common cause is a **peer-dependency conflict**: the package declares an `eve` peer range that doesn't include the version your agent is on. On npm this is a hard error; pnpm only warns.
+
+For **Arcana**, Studio handles it: it installs `@kybernesis/arcana` with the agent's package manager (`npm install --legacy-peer-deps`, `pnpm add`, or `yarn add`) and writes `agent/extensions/arcana.ts` itself, then continues with the env vars. For other items, install the package by hand the same way and rerun the item with `eve add <item> --skip-install` to write its files.
+
+## `eve add` exited with code 2
+
+Exit code `2` means the item's setup needs an answer Studio couldn't supply, or has an unmet prerequisite (most often "run `eve link` first"). The final NDJSON event names the question and prints a safe continuation command (`eve add <item> --skip-install --answer key=<value> …`). Studio shows that command; run it in a terminal from the agent folder, or [connect the agent to Vercel](/docs/connect-vercel) and click **Install** again. Never put a secret in an `--answer`; use the environment variable the item documents.
 
 ## A new tool or hook doesn't appear
 
-Eve discovers capabilities from the filesystem, and Studio reads that discovery snapshot. If you added a tool, hook, skill, or subagent — or created one outside the app — and it isn't in the **[Capabilities](/docs/capabilities)** list, the running agent is showing a stale snapshot. **Reload the capability list, or restart the agent** (Stop then Start) so Eve re-discovers the folder. The same applies after renaming or deleting a capability file.
+Eve discovers capabilities from the filesystem. If you added a tool, hook, skill, subagent, or memory slot outside the app and it isn't in the list, **hit the reload button in the tab header**. Studio re-runs `eve info --json`, which regenerates the discovery and compiled manifest without booting a server. If it still doesn't show, `eve info` will have reported a diagnostic explaining why (a missing `description`, a bad export, a file in the wrong folder).
+
+## Slack or Buzz doesn't answer
+
+Both reach the **deployed** agent only. Deploy first, then test from the platform. For Slack, check the channel file references the same connector that's attached for triggers ([Connecting Slack](/docs/slack)); for Buzz, check the bridge log ([Connecting Buzz](/docs/buzz)).
 
 ## Still stuck?
 
-- Re-check **[Connect to Vercel](/docs/connect-vercel)** — most "nothing happens" issues trace back to a missing model credential.
+- Re-check **[Connect to Vercel](/docs/connect-vercel)**; most "nothing happens" issues trace back to a missing model credential.
 - Read the **[Deploy](/docs/deploy)** tab's command-output console and dev-server logs; the real error is usually there.
-- Confirm you're on a current build — the app installs Eve via `npx eve@latest`, so a fresh agent runs a current framework.
+- Run `eve info` in the agent folder; it's the fastest way to see what Eve discovered and why something was rejected.
+- Confirm you're on a current build. Studio is built for eve 0.49 and newer, installs Eve via `npx eve@latest` for new agents, and offers an in-place upgrade for existing ones ([Keep eve current](/docs/upgrade)).

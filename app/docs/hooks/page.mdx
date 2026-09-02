@@ -6,7 +6,7 @@ export const metadata = {
 
 # Hooks
 
-A **hook** subscribes to your agent's runtime **event stream** and runs a side effect *after* each event is durably recorded. Hooks are **observe-only** — they watch what the agent does but cannot change the reply or inject context. Reach for one for audit trails, metrics, alerting, or persisting sessions to your own database.
+A **hook** subscribes to your agent's runtime **event stream** and runs a side effect *after* each event is durably recorded. Hooks are **observe-only**: they watch what the agent does but cannot change the reply or inject context. Reach for one for audit trails, metrics, alerting, or persisting sessions to your own database.
 
 Hooks live in `agent/hooks/`. The file's path-relative basename is its slug: `agent/hooks/audit.ts` becomes `"audit"`, and `agent/hooks/auth/load-profile.ts` becomes `"auth/load-profile"`.
 
@@ -19,10 +19,10 @@ import { defineHook } from "eve/hooks";
 
 export default defineHook({
   events: {
-    "session.started"(_event, ctx) {
+    async "session.started"(_event, ctx) {
       console.info("session started", { sessionId: ctx.session.id });
     },
-    "message.completed"(event) {
+    async "message.completed"(event) {
       console.info("model finished", {
         length: event.data.message?.length ?? 0,
       });
@@ -31,19 +31,33 @@ export default defineHook({
 });
 ```
 
-Subscribe to any event in the runtime stream — including the lifecycle events `session.started`, `turn.completed`, `message.completed`, `action.result`, and `turn.failed` — or use `"*"` to match every event.
+Subscribe to any event in the runtime stream vocabulary, or use `"*"` to match every event. The full set in eve 0.49:
+
+```
+session.started   turn.started        message.received    step.started
+action.input.appended   actions.requested   action.partial   action.result
+input.requested   input.resolved      subagent.called     subagent.completed
+reasoning.appended   reasoning.completed   message.appended   message.completed
+result.completed  compaction.requested   compaction.completed
+authorization.required   authorization.completed
+step.completed    step.failed         turn.completed      turn.failed
+turn.cancelled    session.waiting     session.failed      session.completed
+```
+
+Every event carries a `meta` envelope with `meta.id` (a unique, sortable id) and `meta.at`. `step.failed` and `turn.failed` carry `{ code, message, details? }`. `turn.cancelled` is not a failure: it is always followed by `session.waiting`.
 
 ## The context
 
-Every handler receives the same `HookContext`:
+Every handler receives the same `HookContext`, which extends Eve's shared session context:
 
 ```ts
-interface HookContext {
+interface HookContext extends SessionContext {
   readonly agent: { readonly name: string; readonly nodeId?: string };
   readonly channel: { readonly kind?: string; readonly continuationToken?: string };
-  readonly session: { readonly id: string };
 }
 ```
+
+`ctx.session.id` identifies the session. Because the context includes the session helpers, a hook can also reach the current sandbox, for example to release its compute after a turn with `(await ctx.getSandbox()).stop()`.
 
 ## Narrowing a tool result
 
@@ -66,7 +80,7 @@ export default defineHook({
 });
 ```
 
-It returns `undefined` when the result doesn't match or is an error.
+It returns `undefined` when the result doesn't match or is an error. It works for a mounted extension's tools too: import the tool from the extension's `./tools` export and pass it.
 
 ## Hook vs tool vs provider
 
@@ -75,22 +89,23 @@ It returns `undefined` when the result doesn't match or is an error.
 | Observe runtime events (audit, metrics, alerting) | a **hook** |
 | Provide structured input to the model on demand | a **[tool](/docs/capabilities)** |
 | Make a value available across a step | a context provider (`defineDynamic`) |
+| Subscribe to platform-specific events | a channel's `events` map |
 
-Hooks run *after* an event is durably recorded, so if a hook throws, the stream stays consistent — but a thrown handler surfaces as `turn.failed`. Wrap the body in `try`/`catch` for belt-and-suspenders semantics. Subagents may carry their own `agent/hooks/`; those fire only inside the subagent's scope.
+Hooks run *after* an event is durably recorded, so if a hook throws, the stream stays consistent, but a thrown handler surfaces as `turn.failed`. Wrap the body in `try`/`catch` for belt-and-suspenders semantics. Hooks are at-least-once: a retried step re-emits its events with new ids. Subagents may carry their own `agent/hooks/`; those fire only inside the subagent's scope.
 
 ## Managing hooks in Eve Studio
 
 Open your agent and go to **Capabilities → Hooks**.
 
-- **See them** — every discovered hook is listed. If a new file doesn't show, hit the reload button in the tab header.
+- **See them** — every discovered hook is listed with the events it subscribes to. If a new file doesn't show, hit the reload button in the tab header; Studio re-runs `eve info --json`.
 - **Create one** — click **New**, give it a name, and Studio scaffolds `agent/hooks/<name>.ts` with a `defineHook` stub.
 - **Edit or delete** — click any hook row to open the in-app editor. It opens the hook's source; edit and **Save**, or **Delete** to remove the file.
 
-Changes take effect the next time the agent (re)starts — hit **Stop → Start** in the header.
+The dev server rebuilds on file changes, so a saved hook applies to the next turn.
 
 ## Walkthrough: an intake-audit hook
 
-Say your agent records what a user takes (supplements, meds) and you want an immutable, timestamped audit of every recorded intake — separate from the agent's memory. Recording is a **tool's** job; **observing** it is the hook's.
+Say your agent records what a user takes (supplements, meds) and you want an immutable, timestamped audit of every recorded intake, separate from the agent's memory. Recording is a **tool's** job; **observing** it is the hook's.
 
 **1. Add the tool.** In **Capabilities → Tools → New**, create `log_intake`, then open it and give it a real schema and return:
 
@@ -132,14 +147,17 @@ export default defineHook({
       });
     },
     // Surface a failed turn so a tracking gap is visible.
-    "turn.failed"(_event, ctx) {
-      console.warn("[intake-audit] turn failed", { session: ctx.session.id });
+    "turn.failed"(event, ctx) {
+      console.warn("[intake-audit] turn failed", {
+        session: ctx.session.id,
+        code: event.data.code,
+      });
     },
   },
 });
 ```
 
-**3. Save and restart.** Save both files, then **Stop → Start** the agent. Now every time the agent calls `log_intake`, the hook observes the typed result and writes an audit line — without ever changing the conversation.
+**3. Save and try it.** Save both files, then ask the agent in Chat to log something. Every time the agent calls `log_intake`, the hook observes the typed result and writes an audit line, without ever changing the conversation.
 
 ## Next
 

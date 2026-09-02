@@ -87,6 +87,17 @@ function IconLink({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
+/** Affiliation tag: Eve Studio is community-built on top of Eve, not a Vercel product. */
+function UnofficialBadge({ className = "" }: { className?: string }) {
+  return (
+    <p className={`flex justify-center ${className}`}>
+      <span className="inline-flex items-center gap-1.5 rounded border border-border bg-canvas px-2 py-1 font-spacemono text-[10px] uppercase tracking-wider text-faint">
+        Independent open-source project · Not an official Vercel product
+      </span>
+    </p>
+  );
+}
+
 /** A Vercel-triangle chip: "▲ <label>", like the eve.dev architecture diagram. */
 function VercelChip({ label }: { label: string }) {
   return (
@@ -143,42 +154,48 @@ const CHANNELS = [
 
 const FEATURES = [
   {
-    icon: IconSparkles,
-    title: "Evolve — self-improving agents",
-    body: "Tell an agent to change itself, in chat or over Slack. Studio drafts the skill, tool, schedule, or edit with the agent's own model, shows you a diff, and commits it on approval. The agent stays pure Eve.",
-    wide: true,
-  },
-  {
     icon: IconChat,
     title: "Chat, local & deployed",
-    body: "Stream your agent's turns, tool calls, subagent delegations, and approvals. Talk to the local dev server or your production deployment from the same window.",
+    body: "Stream your agent's turns, tool calls, subagent delegations, and approvals. Cancel a turn, compact or clear context, or reset the session. Talk to the local dev server or your production deployment from the same window.",
     wide: true,
   },
   {
     icon: IconWrench,
     title: "Every capability, editable",
-    body: "Browse tools, skills, subagents, and hooks — then open, edit, and delete their source in-app. Instructions, model, connections, channels, and schedules too.",
+    body: "Browse tools, skills, subagents, and hooks — then open, edit, and delete their source in-app. Instructions, model (via eve set), connections, channels, and schedules too. Flip on Eve's self-modification subagent when you want the agent to edit itself.",
+    wide: true,
+  },
+  {
+    icon: IconBrain,
+    title: "Long-term memory",
+    body: "Kybernesis Arcana is an official eve integration. Studio installs it as an extension, wires the key locally and on Vercel, and opens a brain browser. Eve's own memory slots — file memory or Supermemory — sit alongside it.",
+    wide: true,
+  },
+  {
+    icon: IconPlug,
+    title: "Registry integrations",
+    body: "Browse the official eve registry in-app — channels, connections, extensions, memory providers, instrumentation — and install any of it with eve add. Guided wizards remain for Slack, Discord, Telegram, Teams, Twilio, GitHub, Linear, and Buzz.",
     wide: true,
   },
   {
     icon: IconRocket,
     title: "One-click Vercel deploy",
-    body: "Link the project, pull the AI Gateway token, and ship to production without leaving the app. Team picker, env, secrets, and logs included.",
+    body: "Link the project, pull the AI Gateway token, and ship to production with eve deploy without leaving the app. Team picker, env, secrets, and logs included.",
   },
   {
     icon: IconTerminal,
     title: "Terminal-free onboarding",
-    body: "Provisions Node, installs Eve, and signs you into Vercel automatically. A non-technical operator never has to open a terminal — ever.",
+    body: "Provisions Node 24, installs Eve, and signs you into Vercel automatically. A non-technical operator never has to open a terminal — ever.",
   },
   {
-    icon: IconBrain,
-    title: "Long-term memory",
-    body: "Connect an Arcana brain in a couple of clicks and your agent remembers across runs — the facts you tell it, and what it did while you were away. Evolve learns from that history too.",
+    icon: IconLink,
+    title: "Channels, including Buzz",
+    body: "Put the agent in Slack, Discord, Teams, Telegram, or Twilio — or give it its own identity in Buzz, Block's agent-native team chat, with a bridge that keeps listening while Studio is closed.",
   },
   {
-    icon: IconPlug,
-    title: "Integrations & channels",
-    body: "Wire up connections (MCP, OpenAPI) and channels — Slack, Linear, GitHub, and more — via Vercel Connect. Schedules and evals are a tab away.",
+    icon: IconWorkflow,
+    title: "Schedules & evals",
+    body: "Author cron-driven jobs that wake the agent on Vercel Cron, and run the agent's eval suite against a live model, from their own tabs.",
   },
 ];
 
@@ -230,8 +247,8 @@ export default function Home() {
             </span>
           </a>
           <nav className="flex items-center gap-5 text-[13px]">
-            <a href="#evolve" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
-              Evolve
+            <a href="#memory" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
+              Memory
             </a>
             <a href="#features" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
               Features
@@ -259,14 +276,7 @@ export default function Home() {
       <section id="top" className="relative overflow-hidden">
         <div className="grid-bg pointer-events-none absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-3xl px-5 pb-16 pt-24 text-center sm:pt-32">
-          <Image
-            src="/brand/eve-mark-black.png"
-            alt="Eve"
-            width={2306}
-            height={819}
-            priority
-            className="mx-auto mb-10 h-16 w-auto sm:h-20"
-          />
+          <UnofficialBadge className="mb-6" />
           <p className="kicker mb-5">Desktop control center for Eve agents</p>
           <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
             Operate every Eve agent —<br className="hidden sm:block" /> without the terminal.
@@ -309,24 +319,23 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Evolve — the flagship, native to Eve Studio */}
-      <section id="evolve" className="border-t border-border">
+      {/* Memory — long-term memory with Arcana, plus the eve registry */}
+      <section id="memory" className="border-t border-border">
         <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
           <div className="flex items-center gap-2.5">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-canvas text-foreground">
-              <IconSparkles className="h-[18px] w-[18px]" />
+              <IconBrain className="h-[18px] w-[18px]" />
             </span>
-            <p className="kicker">Native to Eve Studio</p>
+            <p className="kicker">Long-term memory</p>
           </div>
           <h2 className="mt-5 max-w-3xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            Evolve — agents that improve themselves, with you in the loop.
+            An agent that remembers — across sessions, channels, and deploys.
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
-            Tell an agent to change itself — in chat, or over Slack — and Eve
-            Studio drafts the change with the agent&apos;s own model, shows you
-            the exact diff, and on your approval writes the files and commits
-            them to git. Nothing changes without your yes, and the agent stays
-            pure Eve.
+            Eve gives every agent durable sessions and memory slots. Kybernesis
+            Arcana, an official eve integration, adds a workspace-scoped brain
+            with recall, storage, and notes. Eve Studio wires all of it in a
+            couple of clicks and lets you look inside.
           </p>
 
           <div className="mt-12 grid gap-3 sm:grid-cols-3">
@@ -335,12 +344,14 @@ export default function Home() {
                 01
               </p>
               <h3 className="mt-2 text-[15px] font-semibold tracking-tight">
-                Say it, anywhere
+                Arcana, the official way
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
-                Type it in the Evolve tab, say it in chat — Studio detects it —
-                or DM the deployed agent on Slack, and it proposes the change
-                back to you.
+                Paste a key and pick a workspace. Studio validates it, installs
+                the extension with <code className="font-mono text-[12.5px]">eve add extension/arcana</code>,
+                and sets the env vars locally and on Vercel. The mount brings its
+                own recall, remember, and brain-note skills and always-on memory
+                instructions.
               </p>
             </div>
             <div className="rounded-xl border border-border bg-canvas p-6">
@@ -348,12 +359,12 @@ export default function Home() {
                 02
               </p>
               <h3 className="mt-2 text-[15px] font-semibold tracking-tight">
-                Review the exact diff
+                Memory slots, built into Eve
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
-                Studio turns it into a new skill, tool, schedule, an
-                instructions edit, or a memory — drafted with the agent&apos;s
-                own model. Tweak it, then approve.
+                Add a file-memory slot for durable facts per caller, or install
+                Supermemory from the registry. Sessions, compaction, and durable
+                state are there from the start; Chat exposes Compact and Clear.
               </p>
             </div>
             <div className="rounded-xl border border-border bg-canvas p-6">
@@ -361,39 +372,32 @@ export default function Home() {
                 03
               </p>
               <h3 className="mt-2 text-[15px] font-semibold tracking-tight">
-                Applied &amp; committed
+                Browse the brain
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
-                It writes the files and git-commits them — a revert point for
-                every change. Restart or deploy to go live.
+                Stats, a timeline of what the agent remembered — in Studio, on
+                Slack, on a schedule — and search, reading the same workspace
+                the agent writes. Give a subagent its own brain with a separate
+                mount.
               </p>
             </div>
           </div>
 
           <p className="mt-6 max-w-2xl text-[13px] leading-relaxed text-muted">
-            Works on any Eve agent as it comes — proposals raised from Slack
-            queue to your own Vercel project, and Studio sets that up in a
-            click. Give the agent an{" "}
+            <span className="font-semibold text-foreground">
+              Add any integration from the eve registry.
+            </span>{" "}
+            Arcana is one of many official items. Studio&apos;s Integrations tab
+            lists the whole catalog — channels, connections, extensions, memory
+            providers, instrumentation — with search and one-click install
+            through <code className="font-mono text-[12.5px]">eve add</code>.
+            Guided wizards stay for Slack, Discord, Telegram, Teams, Twilio,
+            GitHub, Linear, and Buzz.{" "}
             <a
               href="/docs/memory"
               className="text-foreground underline decoration-border-strong underline-offset-4 hover:decoration-foreground"
             >
-              Arcana brain
-            </a>{" "}
-            and it goes further: it remembers the facts you tell it, and Evolve
-            learns from everything it has actually done — including the work it
-            did on Slack while you were away.
-          </p>
-
-          <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-muted">
-            Why in the app? An Eve agent can&apos;t rewrite its own compiled,
-            read-only deployment — so Studio authors the change and you approve
-            it, and the agent stays base Eve.{" "}
-            <a
-              href="/docs/evolve"
-              className="text-foreground underline decoration-border-strong underline-offset-4 hover:decoration-foreground"
-            >
-              How Evolve works →
+              How memory works →
             </a>
           </p>
         </div>
@@ -529,7 +533,6 @@ export default function Home() {
       {/* Final CTA */}
       <section className="border-t border-border bg-canvas">
         <div className="mx-auto max-w-3xl px-5 py-24 text-center sm:py-32">
-          <Image src="/brand/eve-mark-black.png" alt="Eve" width={2306} height={819} className="mx-auto mb-8 h-10 w-auto" />
           <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
             Ship your agents from one app.
           </h2>
@@ -560,7 +563,7 @@ export default function Home() {
             <a href="https://vercel.com/eve" className="transition-colors hover:text-foreground">Eve on Vercel</a>
           </div>
           <p className="font-spacemono text-[10px] uppercase tracking-[0.14em] text-faint">
-            Built on Eve · MIT · Not affiliated with Vercel
+            Independent open-source project · Not an official Vercel product · MIT
           </p>
         </div>
       </footer>

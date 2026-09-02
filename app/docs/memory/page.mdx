@@ -1,50 +1,123 @@
 export const metadata = {
   title: "Memory — Eve Studio Docs",
   description:
-    "How an Eve agent remembers: native durable sessions that persist a conversation, and an optional external long-term brain (Arcana) that remembers across sessions.",
+    "How an Eve agent remembers: built-in session memory, memory slots with a provider, and Kybernesis Arcana as an official eve extension for long-term memory — and how Studio's Memory tab wires each.",
 };
 
 # Memory
 
-An agent's usefulness depends on what it can remember. Eve gives every agent memory at two different timescales, and Studio's **Memory** tab shows you which one is active.
+An agent's usefulness depends on what it can remember. Eve gives every agent memory at three layers, and Studio's **Memory** tab shows all three for the active agent and lets you add the ones it doesn't have yet.
 
-## Two kinds of memory
+## Three layers
 
-**Native durable sessions (built in).** Every Eve conversation is a *durable session*. A session is the whole conversation or task: it is long-lived, survives process restarts and redeploys, and can span many messages over days or weeks without losing context. Within a session the agent keeps its full history — turns land in order, tool calls and their results keep their order, and you can read the whole thing back. When a session's context grows large, Eve **compacts** it: it writes a checkpoint that summarizes earlier history so the conversation can keep going without overflowing the model's context window. This is automatic and needs no configuration.
+### 1. Session memory (built in)
 
-The boundary matters: durable sessions remember *within a conversation*. A brand-new session starts fresh. Subagents get their own separate session and context, so nothing crosses that boundary implicitly.
+Every Eve conversation is a **durable session**: long-lived, survives process restarts and redeploys, and can span many messages over days or weeks. Within a session the agent keeps its full history in order. As the context grows, Eve **compacts** it: it writes a checkpoint summarizing earlier history so the conversation can continue without overflowing the model's context window. This is automatic; you can also trigger it from Chat with **Compact context**.
 
-**External long-term brain (across sessions).** When an agent needs to remember things *between* sessions — facts, past work, what performed well, standing preferences — it uses an external memory store. Kybernesis's **Arcana** is the store these template agents use. Arcana is wired in as a connection that exposes memory tools (remember, recall, search) the agent calls during a turn, so memory is something the agent actively writes to and queries, not an ambient buffer. Each agent (and each subagent) can point at its own Arcana **workspace**, giving it a separate brain.
+Alongside history, Eve gives a session:
 
-The two work together: durable sessions carry the current conversation, and the external brain carries what should outlive it.
+- **Durable state** — `defineState` holds working data for one session (a plan, a counter) and dies with the session.
+- **A todo list** — the built-in `todo` tool keeps a per-session task list that survives compaction.
+- **A sandbox workspace** — files the agent writes under `/workspace` in its sandbox persist for the session.
+
+The boundary matters: session memory remembers *within a conversation*. A new session starts fresh, and a subagent gets its own separate session. The Memory tab shows this layer for information; there's nothing to configure.
+
+### 2. Memory slots
+
+A **memory slot** gives the agent context that outlives a session. Eve owns the slot (its name, whose memory it is, and when recall and capture run); a **provider** owns the storage and retrieval. Each slot is one file under `agent/memory/`:
+
+```ts title="agent/memory/profile.ts"
+import { defineMemory } from "eve/memory";
+import { byPrincipal } from "eve/memory/scope";
+import { fileMemory } from "eve/memory/file";
+
+export default defineMemory({
+  description: "Remember stable facts and preferences about the caller.",
+  provider: fileMemory(),
+  scope: byPrincipal,
+});
+```
+
+Before each turn Eve asks the provider to recall relevant context, after each turn it lets the provider capture what happened, and any tools the provider offers reach the model as `<slot>__<tool>` (here `profile__save_memory` and `profile__remove_memory`). `scope` decides who shares the memory; `byPrincipal` scopes it to the authenticated caller and uses a shared `local-dev` scope while you iterate locally.
+
+Providers:
+
+| Provider | Ships as | Recall | Capture |
+| --- | --- | --- | --- |
+| **File memory** | built into eve (`eve/memory/file`) | one bounded document per scope | model-driven `save_memory` / `remove_memory` |
+| **Supermemory** | `@supermemory/eve` via `eve add memory/supermemory` | semantic search | automatic after each turn, plus tools |
+| **Your own** | your code | whatever your store returns | whatever rules you implement |
+
+File memory needs no external service in `eve dev` and stores to a private Vercel Blob store when deployed to Vercel (attach a Blob store to the project). Supermemory needs `SUPERMEMORY_API_KEY`.
+
+Slots are independent and a subagent declares its own under its directory. Extensions cannot contribute slots, which is why Arcana (below) is an extension rather than a provider.
+
+### 3. Long-term memory with Kybernesis Arcana
+
+[**Kybernesis Arcana**](https://eve.dev/integrations/arcana) is an official eve integration for workspace-scoped long-term memory: recall, storage, and brain notes, with embeddings and a timeline. It installs as an **extension mount**:
+
+```bash
+eve add extension/arcana
+```
+
+That installs `@kybernesis/arcana` and writes the mount:
+
+```ts title="agent/extensions/arcana.ts"
+import arcana from "@kybernesis/arcana";
+
+export default arcana({
+  apiKey: process.env.ARCANA_API_KEY!,
+  workspace: process.env.ARCANA_WORKSPACE!,
+});
+```
+
+The mount contributes, under the `arcana__` prefix:
+
+- an **MCP connection** to Arcana's memory service (`arcana__memory`), exposing tools such as `arcana_recall`, `arcana_search`, `arcana_timeline`, `arcana_remember`, and the `arcana_brain_*` note tools;
+- **skills** `recall`, `remember`, and `brain-note`;
+- always-on **instructions** that tell the model to search the workspace before claiming ignorance, and never to store passwords, tokens, payment data, private keys, or one-time codes.
+
+Because the instructions ship with the extension, you don't add a memory section to `instructions.md` yourself. Two environment variables configure it: `ARCANA_API_KEY` (a workspace-scoped `kb_…` key; keep it in a sensitive env var) and `ARCANA_WORKSPACE` (the brain this agent reads and writes). A subagent can carry its own mount under `agent/subagents/<id>/extensions/arcana.ts` pointed at a different workspace, giving it a separate brain.
 
 ## The Memory tab
 
-Open an agent and select the **Memory** top tab. It shows whether the agent is running on Eve's **native durable sessions** alone, or also has an **external long-term brain (Arcana)** attached — and, if Arcana is attached, the workspace it points at.
+Open an agent and select the **Memory** top tab. It reads the agent's compiled manifest and shows:
 
-## Wiring Arcana in Studio
+- **Session memory** — always present, as one expandable row; open it for what Eve keeps per session.
+- **Memory slots** — every slot under `agent/memory/`, with its provider (file memory, Supermemory, or custom), scope, and the tools it exposes. **Add file memory** scaffolds `agent/memory/profile.ts` like the example above. **Add Supermemory** runs `eve add memory/supermemory --non-interactive --yes` and tells you which env var to set. Click a slot to open its source in the editor.
+- **Arcana** — whether the official extension is mounted, the workspace it points at, and which key variable is present. Studio reads the workspace from the mount file itself, so a literal string, `process.env.ARCANA_WORKSPACE`, and a fallback such as `process.env.ARCANA_WORKSPACE ?? "default"` all resolve; the key is reported by the env var the mount reads (normally `ARCANA_API_KEY`). If Arcana isn't mounted, the **Connect Arcana** flow below wires it. Agents that were wired the old way, with a hand-written MCP connection at `agent/connections/arcana.ts`, show as **legacy connection** with a **Migrate** button that installs the official extension in its place.
 
-To attach an external brain, provide three things in the Memory tab:
+## Connecting Arcana in Studio
 
-- **A workspace** — the Arcana workspace (brain) this agent reads from and writes to. Different agents or subagents can use different workspaces to keep their memories separate.
-- **An env var name** — the environment variable the agent's connection reads its key from (for example `ARCANA_API_KEY`).
-- **An API key** — the Arcana key that authorizes access to that workspace.
+**Connect Arcana** asks for two things:
 
-Studio stores the key under the env var name you gave. **If the agent is linked to Vercel, the key is also pushed to the project's environment variables**, so the deployed agent has it too — not just your local dev server. (Linking is the same [Connect to Vercel](/docs/connect-vercel) step the model already needs.)
+- **A workspace** — the Arcana brain this agent reads from and writes to.
+- **An API key** — the `kb_…` key that authorizes that workspace.
 
-Under the hood this configures a connection under `agent/connections/` that points at Arcana and sends the key; the agent's own tools then surface and query that memory during a turn. Keep the key out of source — it lives as an environment variable, never in code.
+Then Studio:
 
-## What a brain adds to Evolve
+1. **Validates the key** read-only against the Arcana API (a `GET …/timeline?limit=1` must succeed).
+2. **Installs the extension** with `eve add extension/arcana --non-interactive --yes --skip-setup`.
+3. **Sets `ARCANA_API_KEY` and `ARCANA_WORKSPACE`** in `.env.local`, and, if the agent is linked to Vercel, pushes both to the project's environment so the deployed agent has them too.
+4. **Restarts** the dev server so the mount is live.
 
-[Evolve](/docs/evolve) works on any agent without one. Attach a brain and it does more:
+If `eve add` fails at the dependency-install step (see [Troubleshooting](/docs/troubleshooting#eve-add-failed-with-dependency_install)), Studio installs `@kybernesis/arcana` with the agent's package manager and writes `agent/extensions/arcana.ts` itself. Either way the result is the same mount.
 
-- **Facts become memory.** Tell the agent *"I always ship on Thursdays"* and Evolve routes it to the brain instead of editing source — no rebuild, no redeploy. Without a brain there's nowhere to put a fact, so that route isn't available.
-- **Scan for patterns sees the whole picture.** It reads the brain's timeline as well as your chats, so it can suggest automating work the agent did on Slack or on a schedule — not just what you typed in Studio.
-- **Proposals queue to the brain.** Self-changes raised while the agent is deployed land alongside everything else it remembers, rather than in a separate store.
+Keep the key out of source. It lives as an environment variable, never in code.
+
+## The brain browser
+
+Once Arcana is connected, the Memory tab opens a **brain browser** for the workspace:
+
+- **Stats** — how many memories, entities, and notes the brain holds.
+- **Timeline** — the most recent things the agent remembered, across every surface it runs on (Studio chat, Slack, schedules).
+- **Search** — query the brain the way the agent's `arcana_search` tool does.
+
+It reads the same workspace the agent writes, so what you see is what the agent will recall.
 
 ## Where to go next
 
-- **[Evolve](/docs/evolve)** — self-changes, and what a brain unlocks.
-- **[Integrations](/docs/integrations)** — connections and channels, the mechanism Arcana memory rides on.
+- **[Integrations](/docs/integrations)** — the registry gallery that installs Arcana and other extensions.
+- **[Chat](/docs/chat)** — Compact and Clear, the session-memory controls.
 - **[The agent, explained](/docs/concepts)** — sessions, turns, and how context flows.
 - **[Deploy to Vercel](/docs/deploy)** — push memory keys to the deployed agent's environment.
