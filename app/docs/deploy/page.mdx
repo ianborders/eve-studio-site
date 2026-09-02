@@ -6,15 +6,15 @@ export const metadata = {
 
 # Deploy to Vercel
 
-Deploying ships your agent to production, where it runs as **Vercel Functions** with durable Workflow runs, and its [schedules](/docs/schedules) actually fire. Studio's **Deploy** tab drives the whole thing (build, deploy, environment, and the logs) from one place.
+Deploying ships your agent to production, where it runs as **Vercel Functions** with durable Workflow runs, and its [schedules](/docs/schedules) actually fire. Studio's **Deploy** tab drives the whole thing (build, deploy, environment, and the logs) across three sub-tabs: **Deploy & Logs**, **Environment**, and **Sandbox**.
 
 ## Before you deploy
 
-Deploying requires the agent to be **connected to Vercel**. That's the same link that lets the model run: it associates the agent's folder with a Vercel project and pulls the AI Gateway credential. If you haven't done it yet, the header button reads **Link & deploy** and opens the Environment tab's link flow first; see **[Connect to Vercel](/docs/connect-vercel)**. Without a linked project there's nothing to deploy to. Once linked, the header's metadata line reads `Vercel · linked · deployed 14d ago <host>`.
+Deploying requires the agent to be **connected to Vercel**. That's the same link that lets the model run: it associates the agent's folder with a Vercel project and pulls the AI Gateway credential. If you haven't done it yet, the header button reads **Link & deploy** and opens the Environment sub-tab, where the same sign-in and connect banner as Chat lives; see **[Connect to Vercel](/docs/connect-vercel)**. Without a linked project there's nothing to deploy to. Once linked, the header's metadata line reads `Vercel · linked`, and after the first deploy `deployed 14d ago <host>`.
 
 ## Build and Deploy
 
-Open an agent and select the **Deploy** top tab. Two buttons drive the pipeline:
+Open an agent and select **Deploy → Deploy & Logs**. Two buttons drive the pipeline:
 
 - **Build**: runs `eve build` locally so you can catch errors before shipping.
 - **Deploy**: runs Eve's own deploy command in its non-interactive form:
@@ -25,32 +25,29 @@ Open an agent and select the **Deploy** top tab. Two buttons drive the pipeline:
 
   `eve deploy` installs dependencies, runs `vercel deploy --prod`, and pulls the project environment afterward. `--yes` confirms the production deployment up front; `--non-interactive` means it never opens a picker or a browser, which is why the project has to be linked first.
 
-Both stream their output into a **command-output console** in the tab. Deploys take a while (installing, building, and uploading), so the console shows a live **"working…" indicator with an elapsed timer** while a step runs, and prints the result (including the deployment URL) when it finishes. Alongside it, a **dev-server logs pane** shows the local `eve dev` server's output, which is where you look when the local agent misbehaves.
+Both stream into the **Command output** console, with a **running…** badge and a **Cancel** button while a step runs, and a result badge (`deploy ok` or `deploy exit N`) when it finishes; the output includes the deployment URL. Below it, the **Dev server logs** pane shows the local `eve dev` server's output live, which is where you look when the local agent misbehaves.
 
 The header's **Deploy** button runs the same command.
 
-## Environment and Sandbox
+## Environment
 
-Near the deploy controls, the **Environment** panel manages the agent's configuration:
+**Deploy → Environment** ("Environment & secrets") manages the agent's configuration:
 
-- **Edit `.env` / `.env.local`**: the local environment files the dev server reads. Values are masked by default; flip **Show values** to reveal them, which is also required before editing. A running `eve dev` reloads the files automatically.
-- **Pull / push Vercel env vars**: sync environment variables between your machine and the linked Vercel project. Pull brings the project's variables down (this is how the AI Gateway token lands locally); push sends local values up so the deployed agent has them.
-- **Secrets**: keys like API tokens live here as environment variables, never in code. Studio writes some for you: the [Arcana](/docs/memory) key and workspace, channel credentials from the guided wizards, and variables declared by registry items you install.
+- **Local env files**: a toggle between `.env` and `.env.local` (gitignored, auto-reloaded by `eve dev`). Values are **masked by default**, so a screen share doesn't leak keys; tick **Show values** to reveal them, which is also what enables editing and **Save**.
+- **Vercel**: a card badged `linked · <project>` or `not linked`. When linked it offers **List remote env** (`vercel env ls`), **Pull env → .env.local** (`vercel env pull`, which is how the AI Gateway token lands locally), and **Add production env var**, which encrypts a single variable into the chosen target (production, preview, or development). When not linked, the sign-in and connect banner appears here, and the tab keeps polling until the link lands.
+- **Secrets**: keys like API tokens live here as environment variables, never in code. Studio writes some for you and pushes them to Vercel where it can: the [Arcana](/docs/memory) key and workspace, Buzz credentials from the guided wizard, and variables declared by registry items you install (those are added to `.env.local` for you to fill in).
 
-A **Sandbox** section sits alongside: the isolated runtime the agent uses for file and command work, and whether it's Eve's default backend (Vercel Sandbox on Vercel) or one you authored in `agent/sandbox.ts`.
+## Sandbox
+
+**Deploy → Sandbox** shows the isolated runtime the agent uses for file and command work. With no authored sandbox it reads **Default sandbox**: the framework default, a `/workspace` bash environment on the best available backend (Vercel Sandbox once deployed). **Add sandbox.ts (Vercel backend)** writes an explicit `agent/sandbox.ts` you can edit to pick a backend, seed files, or lock down the network. An authored sandbox is shown with its source.
 
 ## Chat against the deployed agent
 
-Once deployed, you don't need to leave Studio to try it. In the **[Chat](/docs/chat)** tab, the **Target** toggle switches between:
-
-- **Local**: the `eve dev` server on your machine.
-- **Deployed**: the production agent you just shipped.
-
-Flip Target to **Deployed** and your messages hit the live Vercel deployment, streaming the same turns, tool calls, and approvals as local chat. Session controls (Cancel, Compact, Clear, Reset) work against the deployed agent too.
+Once deployed, you don't need to leave Studio to try it. In the **[Chat](/docs/chat)** tab, the **Target** toggle switches between **Local** (the `eve dev` server on your machine) and **Deployed** (the production agent you just shipped). Flip it to **Deployed**, click **Detect** to fill the URL, then **Test**; when it reads **Reachable ✓. Deployed chat is ready.**, your messages hit the live Vercel deployment, streaming the same turns, tool calls, and approvals as local chat. Session controls (Cancel, Compact, Clear, Reset) work against the deployed agent too.
 
 ### Protected deployments
 
-If your Vercel project has **Deployment Protection** enabled, the production URL is gated and Studio can't reach it by default. Generate a **Protection Bypass for Automation** secret in your Vercel project settings and paste it into Studio; the app sends it as the `x-vercel-protection-bypass` header so it can authenticate to the protected deployment and chat against it. The Buzz bridge uses the same secret.
+If your Vercel project has **Deployment Protection** enabled, the production URL is gated and Studio can't reach it by default; **Test** reports "Blocked by Vercel Deployment Protection". In Vercel → Project → Settings → Deployment Protection, generate a **Protection Bypass for Automation** secret and paste it into the Deployed target bar in Chat, then **Save**. Studio sends it as the `x-vercel-protection-bypass` header on every request, alongside the OIDC token from `.env.local` for the agent's own route auth. The Buzz bridge uses the same secret.
 
 ## Where to go next
 

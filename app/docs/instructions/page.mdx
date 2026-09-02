@@ -6,7 +6,7 @@ export const metadata = {
 
 # Instructions & model
 
-Two files decide how an agent thinks: `instructions.md`, the always-on system prompt, and `agent.ts`, the model and runtime config. Studio's **Instructions** tab edits the first, and the **Model** view edits the second. This page covers both, and how Studio warns you when the agent can't run.
+Two files decide how an agent thinks: `instructions.md`, the always-on system prompt, and `agent.ts`, the model and runtime config. Studio's **Instructions** tab has two sub-tabs: **Prompt** edits the first, and **Model** edits the second. This page covers both, and how Studio warns you when the agent can't run.
 
 If you're new to the folder layout, read [The agent, explained](/docs/concepts) first.
 
@@ -22,7 +22,7 @@ Keep it to stable behavior: identity, tone, and rules that should always apply. 
 
 ### Edit instructions in Studio
 
-Open the agent and go to the **Instructions** tab. It's a markdown editor over `agent/instructions.md`:
+Open the agent and go to **Instructions → Prompt**. It's a markdown editor over `agent/instructions.md`:
 
 1. Edit the prompt.
 2. **Save** to write the file.
@@ -84,19 +84,19 @@ These are all optional; a working `agent.ts` can be just a `model`.
 
 ### Edit the model in Studio
 
-Open the **Model** view for the agent. Studio reads `agent/agent.ts` (and the compiled manifest) and shows the configured model. Pick a model from the **live AI Gateway catalog**, searchable across every provider the gateway offers, set the reasoning effort, and **Save**. Studio writes the change with Eve's own editor:
+Open **Instructions → Model**. Studio reads `agent/agent.ts` and shows the configured model. Type any `provider/model` id, pick one of the favorite chips, or **Browse all** the **live AI Gateway catalog**, fetched from the gateway with the agent's own credential and searchable by name or id (each row shows its context window). Set the **Reasoning effort** (`provider-default`, `none`, `minimal`, `low`, `medium`, `high`, `xhigh`) and **Save**. Studio writes the change with Eve's own editor:
 
 ```bash
 eve set --model openai/gpt-5.6-sol --reasoning high
 ```
 
-`eve set` uses the same model-id validation and source editor as `/model` in the Eve TUI, so the file stays well-formed. It cannot rewrite models defined with `defineDynamic`, an environment expression, or a provider SDK call; for those, edit `agent.ts` directly (Studio's editor opens the file). Reasoning can still be changed on an SDK-model config.
+`eve set` uses the same model-id validation and source editor as `/model` in the Eve TUI, so the file stays well-formed; `provider-default` removes an authored `reasoning` field. If `eve set` fails, Studio falls back to editing the string literals in `agent.ts` itself. Two cases are shown read-only with a note: an agent with no `agent.ts` (Eve defaults the model to `openai/gpt-5.6-luna-fast`; create the file to set it), and a model that isn't a plain gateway string (`defineDynamic`, an environment expression, or a provider SDK call), which you edit in `agent.ts` by hand.
 
 ## When the agent can't run locally
 
 The model runs through the Vercel AI Gateway, so the agent needs a **credential** to make any model call: either a `VERCEL_OIDC_TOKEN` (pulled by linking the project to Vercel) or an `AI_GATEWAY_API_KEY`. A direct-provider model instead needs that provider's key (e.g. `ANTHROPIC_API_KEY`).
 
-Studio shows the configured model and **warns when it can't run** without a credential. In the Chat tab this appears as a **Connect to Vercel** banner: Studio walks you through signing in, picking a team, and linking the project so the token lands in your environment and the model can respond. The full flow is in [Connect to Vercel](/docs/connect-vercel).
+Studio shows the configured model and **warns when it can't run** without a credential. In the Chat tab this appears as a **Not connected to Vercel** banner: Studio walks you through signing in, picking a team, and linking the project so the token lands in your environment and the model can respond. The full flow is in [Connect to Vercel](/docs/connect-vercel).
 
 ## Where to go next
 

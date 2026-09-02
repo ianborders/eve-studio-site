@@ -13,13 +13,13 @@ A practical list of things that go wrong and how to fix them. Each entry is a sy
 | Symptom | Fix |
 | --- | --- |
 | The model won't respond | The agent has no model credential yet. Connect it to Vercel. |
-| "Multiple teams found" | Pick a team in the Connect banner. |
+| A Gateway billing or credit-card error in chat | The linked team has no AI Gateway billing. Relink against a team that does. |
 | Create-agent fails on a fresh machine | Make sure you're online; the app is provisioning Node 24 and Eve. |
 | The agent won't start | Check the dev-server logs in the Deploy tab, or run `eve info`. |
 | A red "N build errors" chip in the header | Click it; Capabilities shows the diagnostics and the file each points at. |
 | Self-modification enabled on an older eve | Upgrade eve, or remove the subagent and its dependency. |
 | "↑ x.y.z available" chip | A newer eve is on npm. Click to upgrade in place. |
-| Deployed chat is unreachable | Paste the deployment's Protection Bypass secret. |
+| Deployed chat is unreachable | Paste the Protection Bypass secret in Chat → Deployed and hit Test. |
 | `409 session_not_active` in the console | Normal right after a session starts; Studio retries. Reset the thread if it persists. |
 | `eve add` failed with `dependency_install` | A peer-dependency conflict; Studio falls back to a direct install for Arcana. |
 | `eve add` exited with code 2 | Setup needs an answer. Run the printed continuation command. |
@@ -27,11 +27,11 @@ A practical list of things that go wrong and how to fix them. Each entry is a sy
 
 ## The model won't respond
 
-An Eve agent's model routes through the Vercel AI Gateway, so it needs a credential before it can reply. If chat sends but nothing comes back, and you see a **Connect to Vercel** banner, the agent isn't linked yet. Walk the in-app flow to sign in, link the project, and pull the token. See **[Connect to Vercel](/docs/connect-vercel)**.
+An Eve agent's model routes through the Vercel AI Gateway, so it needs a credential before it can reply. If chat sends but nothing comes back, and you see a **Not connected to Vercel** (or **Sign in to Vercel**) banner, the agent isn't linked yet. Walk the in-app flow to sign in, link the project, and pull the token. See **[Connect to Vercel](/docs/connect-vercel)**.
 
-## "Multiple teams found"
+## A Gateway billing or credit-card error in chat
 
-This appears during the Vercel connect flow when your account belongs to more than one team, and Studio doesn't know which one owns this agent. **Pick the team in the Connect banner** and the flow continues against that team.
+The agent is linked and the token is present, but the first message fails with an AI Gateway error about billing or a missing credit card. The model bills the AI Gateway of the **team you linked against**, and that team has no billing set up. If your account has several teams, the banner's team selector picks which one; connect again with a team that has Gateway billing (or add billing to the current team in Vercel), then send again.
 
 ## Create-agent fails on a fresh machine
 
@@ -56,21 +56,21 @@ Studio now checks the eve version before offering Enable, so this only affects a
 
 ## Deployed chat is unreachable
 
-If chat works against **Local** but a **Deployed** target can't connect, the production deployment is almost certainly behind **Vercel Deployment Protection**. Generate a **Protection Bypass for Automation** secret in your Vercel project settings and **paste it into Studio** so the app can authenticate to the protected URL. See **[Deploy to Vercel](/docs/deploy)**.
+If chat works against **Local** but a **Deployed** target can't connect, click **Test** in the Deployed target bar; the failure names the cause. "Blocked by Vercel Deployment Protection" means the production URL is gated: generate a **Protection Bypass for Automation** secret in Vercel → Project → Settings → Deployment Protection, paste it into the secret field, **Save**, and test again. "Route auth rejected the request" means the agent's own auth refused the call: pull env from the Environment tab to refresh the OIDC token. "Couldn't reach the URL" means the URL is wrong or the deployment is down; use **Detect** to fill it from the linked project. See **[Deploy to Vercel](/docs/deploy)**.
 
 ## `409 session_not_active`
 
-Creating a session returns as soon as Eve's Workflow accepts the run, before the session is ready to take a second message. If a follow-up arrives in that window, or targets a session that has been reset or has finished, Eve answers `409` with `{ "code": "session_not_active" }`. Studio waits for the `session.waiting` event before sending follow-ups and retries a 409 a few times with backoff, so you normally never see it. If a thread keeps failing this way, its session has been retired (for example by **Reset session**, or by a `/new` from another client on the same address). Start a **New chat**; the old thread stays readable.
+Creating a session returns as soon as Eve's Workflow accepts the run, before the session is ready to take a second message. If a follow-up arrives in that window, or targets a session that has been reset or has finished, Eve answers `409` with `{ "code": "session_not_active" }`. Studio waits for the `session.waiting` event before sending follow-ups and retries a 409 a few times with backoff, so you normally never see it. If the retries are exhausted, Chat says the thread's session is no longer active and points you to **⋯ → Reset session**, which archives the thread and opens a fresh one; the old thread stays readable under **Archived**.
 
 ## `eve add` failed with `dependency_install`
 
 A registry install runs your package manager to add the item's dependencies. When that step fails, `eve add` rolls the install back and reports `failureCode: "dependency_install"`; the console shows the package manager's error. The common cause is a **peer-dependency conflict**: the package declares an `eve` peer range that doesn't include the version your agent is on. On npm this is a hard error; pnpm only warns.
 
-For **Arcana**, Studio handles it: it installs `@kybernesis/arcana` with the agent's package manager (`npm install --legacy-peer-deps`, `pnpm add`, or `yarn add`) and writes `agent/extensions/arcana.ts` itself, then continues with the env vars. For other items, install the package by hand the same way and rerun the item with `eve add <item> --skip-install` to write its files.
+For **Arcana**, Studio handles it: it installs `@kybernesis/arcana` with the agent's package manager (`npm install --legacy-peer-deps`, `pnpm add`, or `yarn add`) and writes `agent/extensions/arcana.ts` itself, then continues with the env vars; the result panel says **Fallback used**. With `@kybernesis/arcana` 0.4.1 on eve 0.49 the install succeeds directly, so this only kicks in when a package's peer range lags a new eve release. For other items, the failure panel suggests the same: install the package by hand with `--legacy-peer-deps` and rerun the item with `eve add <item> --skip-install` to write its files.
 
 ## `eve add` exited with code 2
 
-Exit code `2` means the item's setup needs an answer Studio couldn't supply, or has an unmet prerequisite (most often "run `eve link` first"). The final NDJSON event names the question and prints a safe continuation command (`eve add <item> --skip-install --answer key=<value> …`). Studio shows that command; run it in a terminal from the agent folder, or [connect the agent to Vercel](/docs/connect-vercel) and click **Install** again. Never put a secret in an `--answer`; use the environment variable the item documents.
+Exit code `2` means the item's setup needs an answer Studio couldn't supply, or has an unmet prerequisite (most often "run `eve link` first"). The final NDJSON event names the question and prints a safe continuation command (`eve add <item> --skip-install --answer key=<value> …`). Studio's panel reads **Setup needs an answer Studio can't guess**, shows the prerequisite, and prints that command with `--non-interactive` stripped so the prompts can be answered; run it in a terminal from the agent folder, or [connect the agent to Vercel](/docs/connect-vercel) and click **Install** again. Never put a secret in an `--answer`; use the environment variable the item documents.
 
 ## A new tool or hook doesn't appear
 

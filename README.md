@@ -8,7 +8,7 @@ This repo is intentionally separate from the [app repo](https://github.com/Kyber
 
 ## What the site documents
 
-The docs cover Studio `v0.3.x` against eve 0.49+:
+The docs cover Studio `v0.4.0` against eve 0.49+:
 
 - **Chat** with session controls (Cancel turn, Compact, Clear, Reset), local or deployed.
 - **Instructions & model**: `instructions.md` editor; model and reasoning via `eve set`.

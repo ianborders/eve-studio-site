@@ -37,22 +37,22 @@ Open an agent and select the **Evals** top tab. It lists every eval discovered u
 
 From the list you can:
 
-- **Run one**: execute a single eval (`eve eval <id> --json`).
+- **Run** on a row: execute a single eval (`eve eval <id> --json`).
 - **Run all**: execute every discovered eval (`eve eval --json`).
 
 To run the same suite against a deployment from a terminal, add `--url`: `eve eval --url https://<your-agent>.vercel.app`.
 
-Because each run drives a real session against a live model, runs are **not instant**. Studio shows a live "working…" indicator with an elapsed timer while an eval is in flight, the same busy state you see for other long steps. Let it finish rather than assuming it stalled.
+Because each run drives a real session against a live model, runs are **not instant**. Studio shows a **running…** badge with a **Cancel** button while a run is in flight and streams the runner's JSON into the **Output** console. Let it finish rather than assuming it stalled.
 
 ## Reading results
 
-When a run completes, each eval reports as **passed**, **failed**, or **skipped**:
+When a run completes, the header shows **all passed** or **failures**, from the runner's exit code, and the Output console holds the per-eval detail:
 
 - **Passed**: every gate assertion in that eval held. This is the CLI's exit code `0`.
 - **Failed**: a gate assertion failed, the run errored, or (in strict mode) a soft assertion missed its threshold. This is exit code `1`. A configuration error is exit code `2`.
-- **Skipped**: the eval called `t.skip(reason)`; it counts as neither passed nor failed.
+- An eval that calls `t.skip(reason)` is reported as skipped and counts as neither.
 
-For the full detail behind a failure, Eve drops artifacts under `.eve/evals/<timestamp>/` on the agent: a run `summary.json`, a `results.jsonl` index, and per-eval assertion results, verdicts, captured event streams, and `t.log` lines. The tab's summary tells you *which* eval failed; the artifact tells you *why*.
+For the full detail behind a failure, Eve drops artifacts under `.eve/evals/<timestamp>/` on the agent: a run `summary.json`, a `results.jsonl` index, and per-eval assertion results, verdicts, captured event streams, and `t.log` lines. The console tells you *which* eval failed; the artifact tells you *why*.
 
 ## When to run them
 

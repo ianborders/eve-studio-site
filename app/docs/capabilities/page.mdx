@@ -14,7 +14,7 @@ Instructions and the model decide how an agent thinks. Capabilities decide what 
 
 Studio groups all three (plus [Hooks](/docs/hooks)) under the **Capabilities** tab, with a sub-tab for each. Every sub-tab lists the discovered items, a **New** button to scaffold one, and an in-app editor that opens the real source file when you click a row. Nothing is stored in a Studio database; the files under `agent/` *are* the capabilities.
 
-Capabilities that come from a mounted extension (for example Arcana's `arcana__recall` skill) are listed with an **extension** badge; their source lives in the package, not under `agent/`.
+Capabilities that come from a mounted extension (for example Arcana's `arcana__recall` skill) are badged with the extension's namespace (`arcana`); their source lives in the package, not under `agent/`, so those rows don't open the editor. Eve's own defaults (`bash`, `read_file`, `web_search`, …) are badged **built-in**.
 
 New to the folder model? Read [The agent, explained](/docs/concepts) first.
 
@@ -73,9 +73,9 @@ When a gated tool is called, the run **parks durably** and Studio's Chat surface
 
 ### Create and edit tools in Studio
 
-**Capabilities → Tools.** The sub-tab lists every discovered tool. Click **New** to scaffold a tool file in `agent/tools/`. Click any row to open the **in-app editor**, a modal over that tool's `.ts` source, where you read, edit, and **Save**, or **Delete** the file.
+**Capabilities → Tools.** The sub-tab lists every discovered tool; approval-gated tools carry an **approval** badge. Click **New** and give it a **Name** (snake_case), a **Description** written for the model, and an **Approval gate** (`never`, `once`, or `always`); Studio scaffolds `agent/tools/<name>.ts` with an empty Zod schema and a stub `execute`. Click any row to open the **in-app editor**, a modal over that tool's `.ts` source, where you read, edit, and **Save**, or **Delete** the file (with a confirm step).
 
-Agents set up with an earlier Studio may still carry files from the retired Evolve feature, such as `agent/tools/propose_change.ts`. Studio badges these **legacy Eve Studio (Evolve) tool, safe to delete**; open the row and **Delete** to remove them.
+Agents set up with an earlier Studio may still carry files from the retired Evolve feature, such as `agent/tools/propose_change.ts`. Studio badges these **legacy Eve Studio (Evolve) tool** and notes that they are safe to delete; open the row and **Delete** to remove them.
 
 ## Skills
 
@@ -105,7 +105,7 @@ Skills are scoped to the agent that declares them: a subagent's skills are invis
 
 ### Create and edit skills in Studio
 
-**Capabilities → Skills.** The sub-tab lists discovered skills. Click **New** to scaffold a `skills/<name>/SKILL.md`. Click a row to open the in-app editor on that skill's **`SKILL.md`**, where you edit the description and body and **Save**, or **Delete** the skill.
+**Capabilities → Skills.** The sub-tab lists discovered skills. Click **New** and provide a **Name**, the **Description** that acts as the routing hint, and an optional Markdown **Body**; Studio scaffolds `skills/<name>/SKILL.md`. Click a row to open the in-app editor on that skill's **`SKILL.md`**, where you edit the description and body and **Save**, or **Delete** the skill.
 
 ## Subagents
 
@@ -137,11 +137,11 @@ Reach for a subagent when the task needs a different prompt, role, or narrower t
 
 ### Create and edit subagents in Studio
 
-**Capabilities → Subagents.** The sub-tab lists declared subagents. Click **New** to scaffold `subagents/<id>/` with its `agent.ts` and `instructions.md`. Click a row to open the in-app editor on **both** the subagent's `agent.ts` (model + description) and its `instructions.md` (system prompt), where you edit and **Save**, or **Delete** the subagent. A subagent's own tools, skills, and hooks are authored inside its directory the same way the root's are.
+**Capabilities → Subagents.** The sub-tab lists declared subagents. Click **New** and provide a **Name**, the **Description** the parent uses to decide when to delegate, and optional **Instructions**; Studio scaffolds `subagents/<id>/` with its `agent.ts` and `instructions.md`. Click a row to open the in-app editor on **both** files, where you edit and **Save**, or **Delete** the subagent. A subagent's own tools, skills, and hooks are authored inside its directory the same way the root's are.
 
 ### Enable self-modification (experimental, dev only)
 
-Eve ships a development-only subagent that can edit the agent's own source. A **Self-modification** card sits below the subagent list; its **Enable** action installs it from the registry:
+Eve ships a development-only subagent that can edit the agent's own source. A **Self-modification** card, badged **experimental · dev only**, sits below the subagent list; its **Enable** button installs it from the registry:
 
 ```bash
 eve add experimental/self-modification --non-interactive --yes
@@ -149,9 +149,9 @@ eve add experimental/self-modification --non-interactive --yes
 
 That installs `@eve/self-modification` and writes `agent/subagents/self-modification/` (its `agent.ts`, a sandbox that mounts `agent/` read-write, and an extension mount). Under `eve dev`, the root agent can then delegate "change your own source" requests to it: it inspects and edits files with structured file tools, and can install registry items through its own `selfmod__registry_add` tool. It does nothing in production builds, so a deployed agent stays read-only.
 
-Ask the agent in Studio's local Chat to add a tool or rewrite a skill, watch the delegation in the transcript, then review the resulting files in the Capabilities tab (or `git diff`) before you deploy. Remove the subagent directory to turn it off.
+Once installed the card is badged **enabled** and shows the subagent's path. Ask the agent in Studio's local Chat to add a tool or rewrite a skill, watch the delegation in the transcript, then review the resulting files in the Capabilities tab (or `git diff`) before you deploy. Remove the subagent directory to turn it off.
 
-The package is pinned to the eve 0.49 line. On an agent running an older eve the card reads **needs eve 0.49+** instead of offering Enable, because installing it there produces a discovery error rather than a working subagent. Upgrade the agent first; see [Keep eve current](/docs/upgrade).
+The package is pinned to the eve 0.49 line. On an agent running an older eve the card reads **needs eve 0.49.0+** instead of offering Enable, because installing it there produces a discovery error rather than a working subagent. Upgrade the agent first; see [Keep eve current](/docs/upgrade).
 
 ## Hooks
 

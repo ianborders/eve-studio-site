@@ -12,49 +12,62 @@ The **Chat** tab is where you talk to an agent and watch it work. It streams eve
 
 A **Target** toggle at the top picks what you're talking to:
 
-- **Local**: the agent's local dev server (`eve dev`). This is what you use while building; it reflects your unsaved-to-production changes.
-- **Deployed**: the production deployment on Vercel. Use it to smoke-test what your users actually reach.
+- **Local**: the agent's local dev server (`eve dev`). This is what you use while building; it reflects your unsaved-to-production changes. The dev server must be running: hit **Start** in the per-agent header (see **[The workspace](/docs/workspace)**) and wait for the status pill to read *running*.
+- **Deployed**: the production deployment on Vercel. Use it to smoke-test what your users actually reach. It needs a deployment to exist; see **[Deploy to Vercel](/docs/deploy)**.
 
-For **Local**, the dev server must be running: hit **Start** in the per-agent header (see **[The workspace](/docs/workspace)**) and wait for the status pill to read *running*. The **Deployed** target needs a deployment to exist; see **[Deploy to Vercel](/docs/deploy)**.
+### The Deployed target bar
+
+Switching to **Deployed** opens a bar under the toggle:
+
+- A **URL** field (`https://<project>.vercel.app`). **Detect** fills it from the linked project's latest production deployment.
+- A **secret** field, "paste Protection Bypass secret from Vercel". If the project has Deployment Protection on, generate the secret in Vercel → Project → Settings → Deployment Protection → **Protection Bypass for Automation** and paste it here. It's a system variable and is not included in `env pull`. The OIDC token the deployed agent's route auth expects is read from `.env.local` automatically (pull env in the Environment tab).
+- **Save** stores both. **Test** saves and then probes the deployment's authenticated info route. Success reads **Reachable ✓. Deployed chat is ready.** Failures name the cause: blocked by Deployment Protection (add the secret), route auth rejected the request (pull env to refresh the OIDC token), or the URL couldn't be reached.
+
+A thread is pinned to the server that minted its session. If you switch a thread between Local and Deployed and send again, Studio starts a fresh session on the new target and drops a notice into the transcript: **Chat target changed to &lt;url&gt;. Starting a new session there; the earlier session stays on its own server.** The same happens if the local dev server comes back on a different port.
 
 ## What streams
 
 As the agent runs a turn, Chat renders each event live, in order:
 
+- **Your message** appears the moment you send it. On a cold production deployment the agent can take a while to accept the run, so the reply may lag; the message itself never does.
 - **Turns**: the assistant's messages as they're produced.
-- **Tool calls**: each call is a **collapsible row**; expand it to see the tool's **input** and **output**. Partial output streams in while a long tool runs.
-- **Subagent delegations**: when the agent hands work to a specialist child agent, its run appears nested so you can follow the delegation.
-- **Reasoning**: a **"thinking…"** stream showing the model's reasoning before it acts.
-- **Approval prompts**: when a tool is gated for **human-in-the-loop**, the turn pauses and asks you to approve or reject before it proceeds.
-- **Compaction**: when Eve summarizes older context, Chat marks where the compaction happened.
-- **Cancellations and failures**: a cancelled turn is marked as cancelled (not an error); a failed step or turn shows Eve's error code and message. When a step, turn, and session fail in a row with the same message, Chat renders them as one row rather than three.
+- **Tool calls**: each call is a **collapsible row** with the tool name and a status badge; expand it to see the tool's **input** and **output**. Partial output streams in while a long tool runs.
+- **Subagent delegations**: when the agent hands work to a specialist child agent, a **delegated to &lt;name&gt;** row appears with the child session id, so you can follow the delegation.
+- **Reasoning**: a collapsed **thinking…** block showing the model's reasoning before it acts.
+- **Approval prompts**: when a tool is gated for **human-in-the-loop**, the turn pauses and asks you to **Approve** or **Deny** (or pick from the options the request defines) before it proceeds.
+- **Sign-in prompts**: when a Vercel Connect connection needs authorization, a **Sign in to &lt;service&gt;** card offers **Open sign-in**.
+- **Compaction**: **Compacting context…** and **Context compacted** markers show where Eve summarized older history.
+- **Cancellations and failures**: a cancelled turn shows **Turn cancelled** (not an error). A failed step, turn, or session shows Eve's error code and message; when the three fail in a row with the same message, Chat renders them as one row titled by the most severe stage rather than three.
 
 ## Session controls
 
 Next to the composer:
 
-- **Cancel turn**: stops the in-flight turn. Eve confirms it on the stream as `turn.cancelled` followed by `session.waiting`; the session accepts the next message afterward. Whatever the turn already streamed stays in the thread.
-- **Compact context**: asks Eve to summarize the session's model context now, without sending a message. Useful before a long task in a long thread.
-- **Clear context**: removes the model-message history in place. The session id, system prompt, tools, skills, durable state, and sandbox stay.
-- **Reset session**: terminally retires the session. The thread stays in your sidebar for reading; the next message starts a fresh session.
+- **Cancel turn**: shown while a turn is streaming, as a pill above the composer and in place of the send button. It posts to the session's cancel route; Eve confirms on the stream with `turn.cancelled` followed by `session.waiting`, and the session accepts the next message afterward. Whatever the turn already streamed stays in the thread.
+- The **⋯** menu (Session controls) offers three actions, none of which asks for confirmation:
+  - **Compact context**: summarize history in place. Useful before a long task in a long thread.
+  - **Clear context**: drop the model history but keep the session (its id, tools, and durable state).
+  - **Reset session**: retire the session. Studio archives the current thread and opens a fresh one.
+
+The composer is disabled while a turn is streaming; use **Cancel turn** if you want to interrupt and send something else.
 
 ## The composer and usage bar
 
-A **composer** at the bottom sends your message. Directly under it, a **usage bar** reports the **model the session is running** and the **cost** and **token** count for the conversation, so you can see what a turn is spending as you go.
+A **composer** at the bottom sends your message (Enter sends, Shift+Enter adds a line). Directly under it, a **usage bar** shows the **model configured for the agent**, a context-window fill bar, and the running **cost** and **token** counts for the thread, formatted like `$0.0123 · 12,345↑ 678↓`.
 
 ## How sessions work
 
-Each thread is a durable Eve session. When you send the first message, Eve returns as soon as its Workflow accepts the run and starts streaming. Studio waits for the session to reach `session.waiting` before it sends a follow-up; if a follow-up lands too early Eve answers `409 session_not_active`, and Studio retries with backoff rather than starting a new session. Sending a message while a turn is still active steers the session: Eve cancels the active turn and starts your message as a replacement turn.
+Each thread is a durable Eve session. When you send the first message, Eve returns as soon as its Workflow accepts the run and starts streaming. Studio waits for the session to reach `session.waiting` before it sends a follow-up; if a follow-up lands too early Eve answers `409 session_not_active`, and Studio retries with backoff rather than starting a new session. If the retries are exhausted, Chat explains that the session is no longer active and points you to **⋯ → Reset session**.
 
-Eve exposes no history API, so Studio keeps the transcript itself. Reopen a thread and Studio replays the stored events, then resumes the live stream.
+Eve exposes no history API, so Studio keeps the transcript itself, one file per thread. Reopen a thread and Studio replays the stored events, then resumes the live stream, deduplicating by each event's durable id.
 
 ## Threads and archiving
 
-Each conversation is a **thread**. Threads live under the active agent in the left rail; start a new one with **＋ New chat**. Archive a thread to move it out of the sidebar without losing it, and reopen it later from the **Archived** modal. See **[The workspace](/docs/workspace)** for the rail controls.
+Each conversation is a **thread**. Threads live under the active agent in the left rail; start a new one with **New chat**. Hover a thread to **Archive** it, and reopen it later from the **Archived sessions** modal. See **[The workspace](/docs/workspace)** for the rail controls.
 
 ## If the agent won't reply
 
-If you see a **Connect to Vercel** banner instead of a response, the agent has no model credential yet. The model routes through the Vercel AI Gateway, so it needs one before it can run. Follow **[Connect to Vercel](/docs/connect-vercel)**, then send your message again.
+If you see a **Not connected to Vercel** (or **Sign in to Vercel**) banner instead of a response, the agent has no model credential yet. The model routes through the Vercel AI Gateway, so it needs one before it can run. Follow **[Connect to Vercel](/docs/connect-vercel)**, then send your message again.
 
 ## Next
 

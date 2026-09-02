@@ -20,7 +20,7 @@ Alongside history, Eve gives a session:
 - **A todo list**: the built-in `todo` tool keeps a per-session task list that survives compaction.
 - **A sandbox workspace**: files the agent writes under `/workspace` in its sandbox persist for the session.
 
-The boundary matters: session memory remembers *within a conversation*. A new session starts fresh, and a subagent gets its own separate session. The Memory tab shows this layer for information; there's nothing to configure.
+The boundary matters: session memory remembers *within a conversation*. A new session starts fresh, and a subagent gets its own separate session. What bridges sessions is a memory slot or a long-term brain, below.
 
 ### 2. Memory slots
 
@@ -52,9 +52,9 @@ File memory needs no external service in `eve dev` and stores to a private Verce
 
 Slots are independent and a subagent declares its own under its directory. Extensions cannot contribute slots, which is why Arcana (below) is an extension rather than a provider.
 
-### 3. Long-term memory with Kybernesis Arcana
+### 3. Long-term brain: Kybernesis Arcana
 
-[**Kybernesis Arcana**](https://eve.dev/integrations/arcana) is an official eve integration for workspace-scoped long-term memory: recall, storage, and brain notes, with embeddings and a timeline. It installs as an **extension mount**:
+[**Kybernesis Arcana**](https://eve.dev/integrations/arcana) is an official eve integration for workspace-scoped long-term memory: cross-conversation semantic recall over a timeline, an entity graph, facts, and brain notes. It installs as an **extension mount**:
 
 ```bash
 eve add extension/arcana
@@ -81,37 +81,53 @@ Because the instructions ship with the extension, you don't add a memory section
 
 ## The Memory tab
 
-Open an agent and select the **Memory** top tab. It reads the agent's compiled manifest and shows:
+Open an agent and select the **Memory** top tab. Top to bottom:
 
-- **Session memory**: always present, as one expandable row; open it for what Eve keeps per session.
-- **Memory slots**: every slot under `agent/memory/`, with its provider (file memory, Supermemory, or custom), scope, and the tools it exposes. **Add file memory** scaffolds `agent/memory/profile.ts` like the example above. **Add Supermemory** runs `eve add memory/supermemory --non-interactive --yes` and tells you which env var to set. Click a slot to open its source in the editor.
-- **Arcana**: whether the official extension is mounted, the workspace it points at, and which key variable is present. Studio reads the workspace from the mount file itself, so a literal string, `process.env.ARCANA_WORKSPACE`, and a fallback such as `process.env.ARCANA_WORKSPACE ?? "default"` all resolve; the key is reported by the env var the mount reads (normally `ARCANA_API_KEY`). If Arcana isn't mounted, the **Connect Arcana** flow below wires it. Agents that were wired the old way, with a hand-written MCP connection at `agent/connections/arcana.ts`, show as **legacy connection** with a **Migrate** button that installs the official extension in its place.
+- **Session memory**, badged **built in**. One row, collapsed by default; expand it to see the four things Eve keeps per session (durable sessions + compaction, `defineState`, `todo`, the sandbox `/workspace`). Nothing to configure.
+- **Memory slots**, badged **defineMemory**. Every slot Eve discovered under `agent/memory/`, each with its provider badge (**fileMemory · built in**, **@supermemory/eve**, or **custom provider**), its description, its file path, and the tool prefix (`<slot>__*`). Click a slot to open its source in the editor. Two buttons:
+  - **Add file memory** opens a small form (slot name, default `profile`; description) and writes `agent/memory/<slot>.ts` like the example above. No command runs; the file is written directly.
+  - **Add Supermemory** runs `eve add memory/supermemory --non-interactive --yes`, streams the output, and reminds you to set `SUPERMEMORY_API_KEY`.
+- **Long-term brain · Arcana**, badged **official eve integration**, with a second badge for the state: **optional** (not wired), **active · &lt;workspace&gt;** (extension mounted), or **legacy**. A short explainer links to [eve.dev/integrations/arcana](https://eve.dev/integrations/arcana).
 
-## Connecting Arcana in Studio
+### Arcana states
 
-**Connect Arcana** asks for two things:
+Studio detects the state from the files on disk:
 
-- **A workspace**: the Arcana brain this agent reads from and writes to.
-- **An API key**: the `kb_…` key that authorizes that workspace.
+- **Not wired**: neither mount nor legacy connection exists. The wire form (below) is shown directly.
+- **Arcana extension mounted** (`agent/extensions/arcana.ts` exists), badged **official extension**. The card shows the workspace and where it came from (`ARCANA_WORKSPACE (from env)`, `(default)` when the mount carries a literal fallback, or `(not set)`), which key variable the mount reads and whether it is **present** or **not set**, the mount path, and any subagent mounts (`subagents: research, …`). A **key missing** badge appears when the key variable has no value. The button reads **Update key** (or **Set key** when no key is present).
+- **Legacy Arcana connection** (`agent/connections/arcana.ts` exists), badged **legacy · migrate**. This is how earlier Studio versions wired Arcana, with a hand-written MCP connection. The card explains that the official extension replaces it with the same MCP connection plus the skills and instructions, and offers **Migrate to extension**.
 
-Then Studio:
+Studio reads the workspace from the mount file itself, so a literal string, `process.env.ARCANA_WORKSPACE`, and a fallback such as `process.env.ARCANA_WORKSPACE ?? "default"` (or `||`) all resolve. Key variables are matched by name too, so a mount that reads `ARCANA_GTM_API_KEY` is reported as such.
 
-1. **Validates the key** read-only against the Arcana API (a `GET …/timeline?limit=1` must succeed).
-2. **Installs the extension** with `eve add extension/arcana --non-interactive --yes --skip-setup`.
-3. **Sets `ARCANA_API_KEY` and `ARCANA_WORKSPACE`** in `.env.local`, and, if the agent is linked to Vercel, pushes both to the project's environment so the deployed agent has them too.
-4. **Restarts** the dev server so the mount is live.
+### Wiring Arcana
 
-If `eve add` fails at the dependency-install step (see [Troubleshooting](/docs/troubleshooting#eve-add-failed-with-dependency_install)), Studio installs `@kybernesis/arcana` with the agent's package manager and writes `agent/extensions/arcana.ts` itself. Either way the result is the same mount.
+The wire form has two fields:
 
-Keep the key out of source. It lives as an environment variable, never in code.
+- **Workspace slug** (`ARCANA_WORKSPACE`), for example `my-agent`.
+- **API key** (`ARCANA_API_KEY`), a `kb_…` key scoped to that workspace.
 
-## The brain browser
+**Validate key** makes a read-only call to the Arcana API for that workspace and reports **Key accepted for &lt;workspace&gt;** or the error. **Wire Arcana** then runs, step by step:
 
-Once Arcana is connected, the Memory tab opens a **brain browser** for the workspace:
+1. **Validates the key** again read-only (a one-item timeline read).
+2. **Installs the extension**: `eve add extension/arcana --non-interactive --yes --skip-setup`, streamed to the console. This installs `@kybernesis/arcana` and writes `agent/extensions/arcana.ts`.
+3. **Falls back if the install is rejected.** If `eve add` reports `dependency_install` (a peer-dependency conflict), Studio installs the package with the agent's own package manager (`npm install @kybernesis/arcana --legacy-peer-deps`, `pnpm add @kybernesis/arcana`, or `yarn add @kybernesis/arcana`) and writes the mount file itself. `@kybernesis/arcana` 0.4.1 installs cleanly on eve 0.49, so this path is a safety net rather than the normal route; when it is used, the result panel says **Fallback used**.
+4. **Sets `ARCANA_WORKSPACE` and `ARCANA_API_KEY`** in `.env.local` (and updates `.env` too if it already defines them, so a stale value can't shadow the new one).
+5. **Pushes both to Vercel** when the agent is linked, to production, preview, and development, so the deployed agent remembers too. If the agent isn't linked, the result tells you to link it and push the variables from Deploy → Environment.
+6. **Shows a restart hint.** The dev server has to reload to pick up the mount: the panel offers a **Restart** button when the agent is running, or tells you to Start it.
 
-- **Stats**: how many memories, entities, and notes the brain holds.
-- **Timeline**: the most recent things the agent remembered, across every surface it runs on (Studio chat, Slack, schedules).
-- **Search**: query the brain the way the agent's `arcana_search` tool does.
+The result panel reads **Arcana extension mounted.** and lists the files it touched. Keep the key out of source; it lives as an environment variable, never in code.
+
+**Update key** reopens the same form with the workspace pre-filled and the primary button labeled **Update credentials**. Because the extension is already mounted, the install step is skipped (**Arcana extension already mounted: updating env only.**) and only the two variables are rewritten locally and on Vercel.
+
+**Migrate to extension** reads the workspace and key from the legacy connection and its env var, runs the wiring above, then runs `eve info --json`. Only when Eve reports the mount and zero errors does it delete `agent/connections/arcana.ts`; otherwise the legacy file is kept and the panel says why.
+
+### The brain browser
+
+Once Arcana is mounted and the key and workspace resolve, a **Brain browser** section appears at the bottom of the tab:
+
+- **Stats**: events, entities, mentions, and relations in the workspace.
+- **Search**: the field reads "Ask the brain: hybrid semantic + graph search…"; results show type, age, score, title, and an excerpt, with **back to timeline** to return.
+- **Recent timeline**: the latest things the agent remembered, across every surface it runs on (Studio chat, Slack, schedules), each with its entities.
 
 It reads the same workspace the agent writes, so what you see is what the agent will recall.
 
@@ -120,4 +136,4 @@ It reads the same workspace the agent writes, so what you see is what the agent 
 - **[Integrations](/docs/integrations)**: the registry gallery that installs Arcana and other extensions.
 - **[Chat](/docs/chat)**: Compact and Clear, the session-memory controls.
 - **[The agent, explained](/docs/concepts)**: sessions, turns, and how context flows.
-- **[Deploy to Vercel](/docs/deploy)**: push memory keys to the deployed agent's environment.
+- **[Deploy to Vercel](/docs/deploy)**: the environment the deployed agent reads memory keys from.

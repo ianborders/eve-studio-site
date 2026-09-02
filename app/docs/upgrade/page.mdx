@@ -14,9 +14,9 @@ The header's mono metadata line reads `eve <version>` for the version installed 
 
 ## The upgrade modal
 
-Click the chip and Studio opens the **Upgrade eve** modal. It:
+Click the chip and Studio opens the **Upgrade eve** modal, showing the installed and latest versions side by side. It explains what will happen and notes that eve 0.49 needs Node 24 (Studio provisions a Node 24 runtime for the local dev server; production runs on Vercel's Node) and that your source files are not modified. Click **Upgrade to &lt;latest&gt;** (or **Not now**). The upgrade then:
 
-1. **Stops the dev server** for the agent, so nothing is running on the old version mid-install.
+1. **Stops the dev server** for the agent, so the next Start boots the new version.
 2. **Upgrades eve with the agent's own package manager**, detected from the lockfile:
 
    ```bash
@@ -25,12 +25,11 @@ Click the chip and Studio opens the **Upgrade eve** modal. It:
    npm install eve@latest     # package-lock.json
    ```
 
-   On npm, a peer-dependency conflict is retried with `--legacy-peer-deps`.
-3. **Bumps `@kybernesis/arcana`** to its latest release when the agent has it, so the memory extension moves with eve.
-4. **Runs `eve info --json`** and shows the new version alongside Eve's discovery diagnostics (errors and warnings, with the file each one points at).
-5. **Refreshes the structure** in every tab.
+   If npm refuses the peer-dependency graph (`ERESOLVE`), Studio retries the same install with `--legacy-peer-deps` and says so in the log.
+3. **Bumps `@kybernesis/arcana`** to latest in the same install when the agent depends on it, so the memory extension moves with eve.
+4. **Runs `eve info --json`** to rebuild the manifest and reports the diagnostics count.
 
-The console streams the whole run. When it finishes, hit **Start** to bring the dev server back on the new version.
+The console streams the whole run. The result line reads **Now on eve &lt;version&gt;** (and `@kybernesis/arcana@latest` when it was bumped) with the error and warning counts. With zero errors it tells you to **Start** the agent to run on the new version; with errors, review the diagnostics first. The structure in every tab refreshes from the new manifest.
 
 ## Before a big jump
 
@@ -43,11 +42,11 @@ Small upgrades are usually a no-op for your code. Jumping across several minor v
 - **Channel installs.** `eve channels add` no longer exists; channels come from the registry with `eve add channel/<name>`.
 - **Session API.** Follow-up requests no longer carry a `continuationToken`; a session is addressed by its id and controlled with the cancel, compact, clear, and reset routes.
 
-After the modal reports diagnostics, open the file it names in the relevant tab, fix it, and hit reload; Studio re-runs `eve info --json`.
+After the modal reports diagnostics, the header shows a red **N build errors** chip; click it, fix the file it names, and hit reload so Studio re-runs `eve info --json`.
 
 ## Extensions pin to an eve line
 
-Extension packages (`@eve/self-modification`, `@kybernesis/arcana`, `@kybernesis/*`) declare the eve versions they support. Upgrade **eve first**, then the extensions. Installing an extension built for 0.49 into an older agent produces a discovery error rather than a working mount, which is why Studio replaces **Enable self-modification** with a **needs eve 0.49+** note on older agents.
+Extension packages (`@eve/self-modification`, `@kybernesis/arcana`, `@kybernesis/*`) declare the eve versions they support. Upgrade **eve first**, then the extensions. Installing an extension built for 0.49 into an older agent produces a discovery error rather than a working mount, which is why Studio replaces the self-modification card's **Enable** button with a **needs eve 0.49.0+** note on older agents.
 
 ## From a terminal
 

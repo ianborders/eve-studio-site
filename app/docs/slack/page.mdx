@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Connecting Slack · Eve Studio Docs",
   description:
-    "A complete walkthrough for wiring an Eve agent to Slack: the bot mental model, Studio's 5-step guided setup, the gotchas that cost real debugging time, and how to verify it works.",
+    "A complete walkthrough for wiring an Eve agent to Slack: the bot mental model, Studio's guided setup, the gotchas that cost real debugging time, and how to verify it works.",
 };
 
 # Connecting Slack
@@ -25,11 +25,11 @@ There are two directions, and they have different requirements:
 
 ## The guided setup
 
-In Studio, go to **Integrations → Channels → the Slack card → Set up**. It's a 5-step wizard. (If you'd rather drive it from the registry, `eve add channel/slack` installs the same channel and runs Eve's own setup flow.)
+In Studio, go to **Integrations → Channels → the Slack card → Set up**. It's a six-step wizard, starting with a **How it works** explainer that covers the mental model above. (If you'd rather drive it from the registry, `eve add channel/slack` installs the same channel and runs Eve's own setup flow.)
 
 ### 1. Bot
 
-Create a new Vercel Connect Slack connector, or pick an existing one if you've already got a bot you want to reuse. Then **Open to authorize**: this installs the Eve app into your Slack workspace so the bot actually exists there.
+Create a new Vercel Connect Slack connector (**Create**, which runs `vercel connect create slack --triggers`), or pick an existing one if you've already got a bot you want to reuse. Then **Open to authorize**: this installs the Eve app into your Slack workspace so the bot actually exists there. The link works once; if it errors, hit Create again for a fresh one.
 
 ### 2. Connect
 
@@ -41,7 +41,7 @@ Studio writes `agent/channels/slack.ts`, wired to the bot you chose.
 
 ### 4. Target
 
-Save your Slack member id (`U…`) or a channel id (`C…`) to an environment variable so proactive and scheduled messages have somewhere to go. Set it on **all environments**: **Production** for the deployed cron, and **Development** so the local **Test** button works.
+Save your Slack member id (`U…`) or a channel id (`C…`) to an environment variable so proactive and scheduled messages have somewhere to go. Set it on **all environments**: **Production** for the deployed cron, and **Development** so the Schedules tab's local **Test** button can deliver.
 
 ### 5. Ship
 
@@ -86,8 +86,8 @@ These cost real debugging time. Call them out for yourself before you go hunting
 
 - **The channel file must reference the exact bot you're DMing.** If `agent/channels/slack.ts` points at a different connector than the one delivering events, Slack events fail signature verification and are **dropped silently**. The bot looks online but never replies. No error, no log, just nothing.
 - **The bot is one identity across every agent it's attached to.** Attach the same connector to three agents and they all speak as the same bot. If you don't want agents sharing an identity, give each its own connector.
-- **The Channels tab shows the real wiring.** It tells you which **bot** (`bot slack/<uid>`) a channel uses, and shows a **"connected to this agent"** badge: green when the connector is actually attached to this agent's project, versus "not attached, finish setup" when it isn't. Trust the badge over your memory of what you set up.
-- **There's a Remove button** on each channel to delete it.
+- **The Channels tab shows the real wiring.** It tells you which **bot** (`bot slack/<uid>`) a channel uses, and shows a **connected to this agent** badge: green when the connector is actually attached to this agent's project, versus **not attached. Finish setup** when it isn't (with a **Finish setup** button). Trust the badge over your memory of what you set up.
+- **There's a Remove channel icon** on each row to delete the file. The connector stays attached in Vercel; remove it there if you no longer want it.
 
 ---
 

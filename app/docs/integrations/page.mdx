@@ -26,13 +26,13 @@ eve registry search <q>   # find an item
 eve registry view <item>  # inspect before installing
 ```
 
-Studio's **Add from registry** gallery wraps that. It lists the official catalog (fetched with `eve registry list --json` and cached per agent), lets you **filter** by kind (`channel/`, `connection/`, `extension/`, `memory/`, `instrumentation/`) and **search** by name or description, and shows each item's description and a link to its page on [eve.dev/integrations](https://eve.dev/integrations). **Install** runs:
+Studio's **Add from registry · eve add** gallery wraps that. It lists the official catalog (fetched with `eve registry list --json` and cached per agent for ten minutes; a refresh icon forces a re-read), lets you **filter** with chips (All, Channels, Connections, Extensions, Memory, Instrumentation, Other) and **search** by name, address, or description, and shows each item's description and a **docs** link to its page on [eve.dev/integrations](https://eve.dev/integrations). Channels with a guided wizard are marked **guided setup · Channels** instead of an Install button. **Install** runs:
 
 ```bash
 eve add <item> --non-interactive --yes
 ```
 
-Progress streams into the in-app console. `--yes` accepts an item's recommended setup answers. Some items need an answer Studio can't guess (a connector to pick, a project to link); in that case `eve add` exits with code `2` and prints a continuation command, which Studio surfaces so you can finish setup in a terminal or rerun after linking to Vercel. Generated files land under `agent/` (a channel file, a connection, an extension mount) and any environment variables the item declares are listed so you can set them in **[Deploy → Environment](/docs/deploy)**.
+Progress streams into the in-app console. `--yes` accepts an item's recommended setup answers. When it finishes, the panel lists the files written, the environment variables added to `.env.local` for you to fill in, whether a deploy is needed, and a **Restart** button for the dev server. Some items need an answer Studio can't guess (a connector to pick, a project to link); in that case `eve add` exits with code `2`, and the panel reads **Setup needs an answer Studio can't guess**, names any prerequisite (usually `eve link`), and prints the continuation command to finish in a terminal from the agent folder.
 
 Review what an install added before you run the agent. Registry items are project files and dependencies, the same as code you'd write.
 
@@ -76,9 +76,9 @@ Not everything needs OAuth. A connection can also authenticate with a static bea
 
 **Integrations → Connections** is laid out top to bottom:
 
-- **This agent's connections**: every connection Eve discovered, meaning the files in `agent/connections/` (authored by you, by a guided wizard, or by `eve add connection/<name>`) and connections contributed by a mounted extension. Authored rows open, edit, and delete their file. Extension rows are badged **via extension &lt;ns&gt;** (for example Arcana's `arcana__memory`), have no delete, and **Open** edits the mount file under `agent/extensions/` instead. **Add** scaffolds a new MCP or OpenAPI connection with a URL and an auth mode.
-- **Vercel Connect**: the connectors on your linked Vercel project, split into **Attached to this agent** and a collapsed **Other connectors on your team**. **Create** a connector (opens Vercel Connect), then **Use in agent** to write the connection (or channel) code wired to that connector's UID.
-- **Add from registry**: the registry gallery filtered to connections, extensions, memory providers, and instrumentation (channels live in the Channels sub-tab).
+- **This agent's connections**: every connection Eve discovered, meaning the files in `agent/connections/` (authored by you, by a guided wizard, or by `eve add connection/<name>`) and connections contributed by a mounted extension. Each row shows its protocol badge (`mcp` or `openapi`) and URL. Authored rows **Open** the file in the editor and have a **Delete** icon. Extension rows are badged **via extension &lt;ns&gt;** (for example Arcana's `arcana__memory`), have no delete, and **Open** edits the mount file under `agent/extensions/` instead. **Add** opens a form: a name, **MCP server** or **OpenAPI / REST**, the URL, a description, and an auth mode (static bearer token from an env var, a custom header, Vercel Connect user or app OAuth, or none); Studio writes `connections/<name>.ts`.
+- **Vercel Connect**: the connectors on your Vercel team, split into **Attached to this agent** (referenced by the agent's files or attached to its project) and a collapsed **Other connectors on your team**. **Add connector** opens Vercel Connect to create one; **Use in agent** writes the connection (or, for Slack, GitHub, and Linear, the channel) code wired to that connector's UID, then offers **Attach for triggers**.
+- **Add from registry · eve add**: the registry gallery filtered to connections, extensions, memory providers, and instrumentation (channels live in the Channels sub-tab).
 
 ---
 
@@ -98,7 +98,7 @@ Eve's HTTP channel is always on. It's the session API that Studio chat, the term
 | **GitHub**: @mentions, PR review | Vercel Connect | guided wizard |
 | **Linear**: issue delegation, agent sessions | Vercel Connect | guided wizard · `eve add linear` |
 | **Discord**: slash commands, components | Env vars | guided wizard · `eve add channel/discord` |
-| **Microsoft Teams**: messages + Adaptive Cards | Env vars | guided wizard |
+| **Microsoft Teams**: messages + Adaptive Cards | Env vars | guided wizard · `eve add channel/teams` |
 | **Telegram**: bot messages | Env vars | guided wizard |
 | **Twilio**: SMS & voice | Env vars | guided wizard |
 | **Buzz**: agent-native team chat by Block; the agent is a first-class member | Nostr identity | guided wizard |
@@ -122,7 +122,7 @@ The connector must be **attached with triggers** pointed at Eve's route so the p
 
 ### Env-based channels (Discord, Teams, Telegram, Twilio)
 
-These read credentials from environment variables. When you add one in Studio, it tells you exactly which vars to set (e.g. `DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_BOT_TOKEN`). Set them in **[Deploy → Environment](/docs/deploy)**, then restart.
+These read credentials from environment variables. Each has a guided **Set up** wizard (bot creation, credentials, webhook or endpoint, ship) that tells you exactly which vars to set (e.g. `DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_BOT_TOKEN`; `MICROSOFT_APP_ID`, `MICROSOFT_APP_PASSWORD`; `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET_TOKEN`; `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`). Set them in **[Deploy → Environment](/docs/deploy)**, deploy, then use **Finish setup** on the configured row to register the webhook or verify the endpoint against the deployment.
 
 ### Web Chat
 
@@ -168,24 +168,20 @@ A route's path is its app URL (the channel filename does not prefix it), and the
 
 ### Adding a channel in Studio
 
-**Integrations → Channels** shows what's configured, the guided grid (Slack, Discord, Telegram, Teams, Twilio, GitHub, Linear, Buzz, Web Chat), and a collapsed **More channels from the eve registry** list for everything else the registry offers (Google Chat, WhatsApp, Photon, Linq, and more). Registry channels install with `eve add channel/<name> --non-interactive --yes`; set the environment variables the item declares and deploy.
+**Integrations → Channels** has three sections:
 
-1. Pick a channel from the guided grid or the registry list.
-2. Studio guides you by auth type:
-   - **Connect** channels (Slack/GitHub/Linear) → choose a Vercel Connect connector.
-   - **Env** channels → shows the variables to set.
-   - **Web Chat** → installs `channel/web` from the registry.
-   - **Buzz** → the identity and bridge wizard.
-3. It writes `agent/channels/<kind>.ts`.
+- **Configured**: the built-in `eve HTTP channel` (**always on**) plus every channel file in the agent, each with a status badge such as **connected to this agent**, **not attached. Finish setup**, or **added**, the connector it uses (`bot slack/<uid>`), and its route. Rows offer **Finish setup** when a deploy-side step is pending, **Set up** to reopen the wizard, and a **Remove channel** icon (which deletes the file; the connector stays attached in Vercel).
+- **Add a channel**: the guided grid, in order Slack, Discord, Microsoft Teams, Telegram, Twilio, GitHub, Linear, Buzz (each with **Set up**), then Web Chat and Custom (each with **Add**). Connect channels pick or create a Vercel Connect connector; env channels walk you through credentials and endpoints; Web Chat runs `eve add channel/web --non-interactive --yes`; Custom asks for a file name (default `intake`) and writes a `defineChannel` scaffold; Buzz runs the identity and bridge wizard.
+- **More channels from the eve registry**: a collapsed list of every other `channel/*` item the registry offers (Google Chat, WhatsApp, and more), each with a **docs** link and **Install**, which runs `eve add channel/<name> --non-interactive --yes`. Anything an item's setup needs from you is shown as a command to finish in a terminal.
 
-Channels contributed by an extension mount are listed with an **extension** badge.
+Every path ends with `agent/channels/<kind>.ts` on disk. Set the environment variables the channel declares, then deploy: platform channels only reach the deployed agent.
 
 ## Attaching a connector for triggers
 
 For an event-driven channel, the platform needs to deliver events to Eve's route. Studio's **Attach for triggers** runs:
 
 ```bash
-vercel connect attach <connector-uid> --triggers --trigger-path /eve/v1/<kind> --yes
+vercel connect attach <connector-uid> --triggers --trigger-path /eve/v1/<kind>
 ```
 
 That re-points the connector's trigger destination at Eve's channel route (e.g. `/eve/v1/slack`). Then **[deploy](/docs/deploy)** so the live agent starts receiving events.
