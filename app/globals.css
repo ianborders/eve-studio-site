@@ -37,7 +37,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Space Mono uppercase eyebrow — the app's signature label. */
+/* Space Mono uppercase eyebrow, the app's signature label. */
 .kicker {
   font-family: var(--font-space-mono), ui-monospace, monospace;
   font-size: 11px;
@@ -46,7 +46,7 @@ body {
   color: var(--faint);
 }
 
-/* Inline code gets a light pill — but ONLY when it's not inside a <pre>. */
+/* Inline code gets a light pill, but ONLY when it's not inside a <pre>. */
 .prose :not(pre) > code {
   background-color: var(--color-canvas);
   border: 1px solid var(--color-border);

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Evals — Eve Studio Docs",
+  title: "Evals · Eve Studio Docs",
   description:
     "What evals are in Eve, how Studio's Evals tab lists and runs them with eve eval, and how to read the results.",
 };
@@ -37,8 +37,8 @@ Open an agent and select the **Evals** top tab. It lists every eval discovered u
 
 From the list you can:
 
-- **Run one** — execute a single eval (`eve eval <id> --json`).
-- **Run all** — execute every discovered eval (`eve eval --json`).
+- **Run one**: execute a single eval (`eve eval <id> --json`).
+- **Run all**: execute every discovered eval (`eve eval --json`).
 
 To run the same suite against a deployment from a terminal, add `--url`: `eve eval --url https://<your-agent>.vercel.app`.
 
@@ -48,9 +48,9 @@ Because each run drives a real session against a live model, runs are **not inst
 
 When a run completes, each eval reports as **passed**, **failed**, or **skipped**:
 
-- **Passed** — every gate assertion in that eval held. This is the CLI's exit code `0`.
-- **Failed** — a gate assertion failed, the run errored, or (in strict mode) a soft assertion missed its threshold. This is exit code `1`. A configuration error is exit code `2`.
-- **Skipped** — the eval called `t.skip(reason)`; it counts as neither passed nor failed.
+- **Passed**: every gate assertion in that eval held. This is the CLI's exit code `0`.
+- **Failed**: a gate assertion failed, the run errored, or (in strict mode) a soft assertion missed its threshold. This is exit code `1`. A configuration error is exit code `2`.
+- **Skipped**: the eval called `t.skip(reason)`; it counts as neither passed nor failed.
 
 For the full detail behind a failure, Eve drops artifacts under `.eve/evals/<timestamp>/` on the agent: a run `summary.json`, a `results.jsonl` index, and per-eval assertion results, verdicts, captured event streams, and `t.log` lines. The tab's summary tells you *which* eval failed; the artifact tells you *why*.
 
@@ -60,6 +60,6 @@ Run the relevant evals after you change something that affects behavior (an [ins
 
 ## Where to go next
 
-- **[Capabilities](/docs/capabilities)** — the tools evals most often assert on.
-- **[Instructions](/docs/instructions)** — the prompt changes evals guard against.
-- **[Deploy to Vercel](/docs/deploy)** — ship once the evals are green.
+- **[Capabilities](/docs/capabilities)**: the tools evals most often assert on.
+- **[Instructions](/docs/instructions)**: the prompt changes evals guard against.
+- **[Deploy to Vercel](/docs/deploy)**: ship once the evals are green.

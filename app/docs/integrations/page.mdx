@@ -1,15 +1,15 @@
 export const metadata = {
-  title: "Connections & channels — Eve Studio Docs",
+  title: "Connections & channels · Eve Studio Docs",
   description:
-    "Install anything from the eve registry, give your agent tools from other services (connections), and surface it where people work (channels) — Slack, Linear, GitHub, Discord, web, Buzz, and more — all from Eve Studio.",
+    "Install anything from the eve registry, give your agent tools from other services (connections), and surface it where people work (channels: Slack, Linear, GitHub, Discord, web, Buzz, and more), all from Eve Studio.",
 };
 
 # Connections & channels
 
 Two sides of the same coin:
 
-- **Connections** — how your agent **reaches out** to other services (their tools become the agent's tools).
-- **Channels** — how people **reach your agent** (Slack, web, GitHub, …).
+- **Connections**: how your agent **reaches out** to other services (their tools become the agent's tools).
+- **Channels**: how people **reach your agent** (Slack, web, GitHub, …).
 
 Both live in the **Integrations** tab in Eve Studio, with a sub-tab for each, plus an **Add from registry** gallery that installs anything in the official eve catalog.
 
@@ -76,9 +76,9 @@ Not everything needs OAuth. A connection can also authenticate with a static bea
 
 **Integrations → Connections** is laid out top to bottom:
 
-- **This agent's connections** — every connection Eve discovered: the files in `agent/connections/` (authored by you, by a guided wizard, or by `eve add connection/<name>`) and connections contributed by a mounted extension. Authored rows open, edit, and delete their file. Extension rows are badged **via extension &lt;ns&gt;** (for example Arcana's `arcana__memory`), have no delete, and **Open** edits the mount file under `agent/extensions/` instead. **Add** scaffolds a new MCP or OpenAPI connection with a URL and an auth mode.
-- **Vercel Connect** — the connectors on your linked Vercel project, split into **Attached to this agent** and a collapsed **Other connectors on your team**. **Create** a connector (opens Vercel Connect), then **Use in agent** to write the connection (or channel) code wired to that connector's UID.
-- **Add from registry** — the registry gallery filtered to connections, extensions, memory providers, and instrumentation (channels live in the Channels sub-tab).
+- **This agent's connections**: every connection Eve discovered, meaning the files in `agent/connections/` (authored by you, by a guided wizard, or by `eve add connection/<name>`) and connections contributed by a mounted extension. Authored rows open, edit, and delete their file. Extension rows are badged **via extension &lt;ns&gt;** (for example Arcana's `arcana__memory`), have no delete, and **Open** edits the mount file under `agent/extensions/` instead. **Add** scaffolds a new MCP or OpenAPI connection with a URL and an auth mode.
+- **Vercel Connect**: the connectors on your linked Vercel project, split into **Attached to this agent** and a collapsed **Other connectors on your team**. **Create** a connector (opens Vercel Connect), then **Use in agent** to write the connection (or channel) code wired to that connector's UID.
+- **Add from registry**: the registry gallery filtered to connections, extensions, memory providers, and instrumentation (channels live in the Channels sub-tab).
 
 ---
 
@@ -94,16 +94,16 @@ Eve's HTTP channel is always on. It's the session API that Studio chat, the term
 
 | Channel | Auth | Install |
 | --- | --- | --- |
-| **Slack** — @mentions, DMs, threads, HITL buttons | Vercel Connect | guided wizard · `eve add channel/slack` |
-| **GitHub** — @mentions, PR review | Vercel Connect | guided wizard |
-| **Linear** — issue delegation, agent sessions | Vercel Connect | guided wizard · `eve add linear` |
-| **Discord** — slash commands, components | Env vars | guided wizard · `eve add channel/discord` |
-| **Microsoft Teams** — messages + Adaptive Cards | Env vars | guided wizard |
-| **Telegram** — bot messages | Env vars | guided wizard |
-| **Twilio** — SMS & voice | Env vars | guided wizard |
-| **Buzz** — agent-native team chat by Block; the agent is a first-class member | Nostr identity | guided wizard |
-| **Web Chat** — a Next.js browser app | — | `eve add channel/web` |
-| **Custom** — your own webhook / WebSocket | your code | New → Custom |
+| **Slack**: @mentions, DMs, threads, HITL buttons | Vercel Connect | guided wizard · `eve add channel/slack` |
+| **GitHub**: @mentions, PR review | Vercel Connect | guided wizard |
+| **Linear**: issue delegation, agent sessions | Vercel Connect | guided wizard · `eve add linear` |
+| **Discord**: slash commands, components | Env vars | guided wizard · `eve add channel/discord` |
+| **Microsoft Teams**: messages + Adaptive Cards | Env vars | guided wizard |
+| **Telegram**: bot messages | Env vars | guided wizard |
+| **Twilio**: SMS & voice | Env vars | guided wizard |
+| **Buzz**: agent-native team chat by Block; the agent is a first-class member | Nostr identity | guided wizard |
+| **Web Chat**: a Next.js browser app | none | `eve add channel/web` |
+| **Custom**: your own webhook / WebSocket | your code | New → Custom |
 
 ### Vercel Connect channels (Slack, GitHub, Linear)
 
@@ -192,7 +192,7 @@ That re-points the connector's trigger destination at Eve's channel route (e.g. 
 
 ## Next
 
-- [Connecting Slack](/docs/slack) — the full Slack walkthrough.
-- [Memory](/docs/memory) — Arcana and memory providers, also installed from the registry.
-- [Deploy to Vercel](/docs/deploy) — ship the agent so channels can reach it.
-- [Hooks](/docs/hooks) — observe results from connection tools.
+- [Connecting Slack](/docs/slack): the full Slack walkthrough.
+- [Memory](/docs/memory): Arcana and memory providers, also installed from the registry.
+- [Deploy to Vercel](/docs/deploy): ship the agent so channels can reach it.
+- [Hooks](/docs/hooks): observe results from connection tools.

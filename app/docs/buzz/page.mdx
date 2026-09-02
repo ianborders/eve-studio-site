@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Connecting Buzz — Eve Studio Docs",
+  title: "Connecting Buzz · Eve Studio Docs",
   description:
-    "Wire an Eve agent into a Buzz workspace as a first-class member — identity, admission, profile, the inbound bridge, how to verify the agent listens and replies, and Eve's official ACP adapter for local agents.",
+    "Wire an Eve agent into a Buzz workspace as a first-class member: identity, admission, profile, the inbound bridge, how to verify the agent listens and replies, and Eve's official ACP adapter for local agents.",
 };
 
 # Connecting Buzz
@@ -34,8 +34,8 @@ Direction summary:
 
 The wizard's first real question is the **relay URL**, the address of your workspace's Buzz relay:
 
-- **Hosted Buzz** — your workspace lives at a subdomain of `communities.buzz.xyz`, so the relay URL is `wss://<workspace>.communities.buzz.xyz`. The `<workspace>` part is the community name you signed up with; it's the domain you see in workspace invite links, and workspace admins can read the full URL in the Buzz desktop app's community settings.
-- **Self-hosted** — the URL of your `buzz-relay` deployment, e.g. `wss://buzz.yourteam.com`. If you run the relay, you know this one.
+- **Hosted Buzz**: your workspace lives at a subdomain of `communities.buzz.xyz`, so the relay URL is `wss://<workspace>.communities.buzz.xyz`. The `<workspace>` part is the community name you signed up with; it's the domain you see in workspace invite links, and workspace admins can read the full URL in the Buzz desktop app's community settings.
+- **Self-hosted**: the URL of your `buzz-relay` deployment, e.g. `wss://buzz.yourteam.com`. If you run the relay, you know this one.
 
 Either `wss://` or `https://` works; Studio normalizes it.
 
@@ -68,15 +68,15 @@ You can edit all of this later without re-running the wizard; the configured Buz
 One click writes everything the deployed agent needs:
 
 - `BUZZ_RELAY_URL`, `BUZZ_PRIVATE_KEY`, `BUZZ_WEBHOOK_SECRET`, `BUZZ_AGENT_NAME` → Vercel env (all environments)
-- `agent/channels/buzz.ts` — a custom channel (outbound posting + the secret-gated `/inbound` route, built on `defineChannel` and `from(address).send(...)`)
+- `agent/channels/buzz.ts`: a custom channel (outbound posting + the secret-gated `/inbound` route, built on `defineChannel` and `from(address).send(...)`)
 - `nostr-tools` added to the agent's dependencies
 
 ### 5. Bridge
 
 The inbound listener. Studio prefills the target from your production deployment (`https://<agent>.vercel.app/inbound`) and offers two modes:
 
-- **Run while Studio is open** — good for testing.
-- **Install background bridge** — a macOS LaunchAgent that starts at login and keeps listening with Studio closed. This is the production mode: as long as the agent is deployed, it hears and answers.
+- **Run while Studio is open**: good for testing.
+- **Install background bridge**: a macOS LaunchAgent that starts at login and keeps listening with Studio closed. This is the production mode: as long as the agent is deployed, it hears and answers.
 
 Studio also detects your Vercel **Deployment Protection** bypass secret automatically so the bridge can reach the deployed route.
 
@@ -91,7 +91,7 @@ Deploy, then DM the agent in Buzz.
 ## Verifying it works
 
 1. The agent shows **online** in the member list (the bridge heartbeats presence).
-2. **DM it.** Within ~5–10 seconds the deployed agent replies in the DM.
+2. **DM it.** Within 5 to 10 seconds the deployed agent replies in the DM.
 3. **@mention it** in a channel it's a member of. Same deal, reply in-channel.
 4. The Channels list in Studio shows **connected to this agent** (member + bridge running).
 

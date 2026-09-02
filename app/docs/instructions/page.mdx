@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Instructions & model — Eve Studio Docs",
+  title: "Instructions & model · Eve Studio Docs",
   description:
     "Edit the agent's system prompt in the Instructions tab and its model and reasoning in the Model view, which writes through eve set.",
 };
@@ -76,9 +76,9 @@ Supported values are `"provider-default"`, `"none"`, `"minimal"`, `"low"`, `"med
 
 `defineAgent` also takes optional fields you may see in `agent.ts`:
 
-- **`compaction`** — Eve summarizes older turns as a session approaches the context window (on by default at `thresholdPercent: 0.9`). Lower the threshold to compact sooner.
-- **`limits`** — framework-owned caps like `maxInputTokensPerSession` and `maxOutputTokensPerSession`.
-- **`modelOptions`** — provider-specific option overrides.
+- **`compaction`**: Eve summarizes older turns as a session approaches the context window (on by default at `thresholdPercent: 0.9`). Lower the threshold to compact sooner.
+- **`limits`**: framework-owned caps like `maxInputTokensPerSession` and `maxOutputTokensPerSession`.
+- **`modelOptions`**: provider-specific option overrides.
 
 These are all optional; a working `agent.ts` can be just a `model`.
 
@@ -100,7 +100,7 @@ Studio shows the configured model and **warns when it can't run** without a cred
 
 ## Where to go next
 
-- **[Tools, skills & subagents](/docs/capabilities)** — give the agent capabilities beyond the prompt.
-- **[Connect to Vercel](/docs/connect-vercel)** — so the model can actually run.
-- **[The agent, explained](/docs/concepts)** — how instructions and the model fit the whole folder.
-- **[Deploy](/docs/deploy)** — ship instruction and model changes to production.
+- **[Tools, skills & subagents](/docs/capabilities)**: give the agent capabilities beyond the prompt.
+- **[Connect to Vercel](/docs/connect-vercel)**: so the model can actually run.
+- **[The agent, explained](/docs/concepts)**: how instructions and the model fit the whole folder.
+- **[Deploy](/docs/deploy)**: ship instruction and model changes to production.

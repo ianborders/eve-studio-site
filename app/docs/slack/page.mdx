@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Connecting Slack — Eve Studio Docs",
+  title: "Connecting Slack · Eve Studio Docs",
   description:
-    "A complete walkthrough for wiring an Eve agent to Slack — the bot mental model, Studio's 5-step guided setup, the gotchas that cost real debugging time, and how to verify it works.",
+    "A complete walkthrough for wiring an Eve agent to Slack: the bot mental model, Studio's 5-step guided setup, the gotchas that cost real debugging time, and how to verify it works.",
 };
 
 # Connecting Slack
@@ -86,7 +86,7 @@ These cost real debugging time. Call them out for yourself before you go hunting
 
 - **The channel file must reference the exact bot you're DMing.** If `agent/channels/slack.ts` points at a different connector than the one delivering events, Slack events fail signature verification and are **dropped silently**. The bot looks online but never replies. No error, no log, just nothing.
 - **The bot is one identity across every agent it's attached to.** Attach the same connector to three agents and they all speak as the same bot. If you don't want agents sharing an identity, give each its own connector.
-- **The Channels tab shows the real wiring.** It tells you which **bot** (`bot slack/<uid>`) a channel uses, and shows a **"connected to this agent"** badge: green when the connector is actually attached to this agent's project, versus "not attached — finish setup" when it isn't. Trust the badge over your memory of what you set up.
+- **The Channels tab shows the real wiring.** It tells you which **bot** (`bot slack/<uid>`) a channel uses, and shows a **"connected to this agent"** badge: green when the connector is actually attached to this agent's project, versus "not attached, finish setup" when it isn't. Trust the badge over your memory of what you set up.
 - **There's a Remove button** on each channel to delete it.
 
 ---
@@ -101,6 +101,6 @@ One thing that trips people up: asking the agent in **Studio chat** *"are you co
 
 ## Next
 
-- [Schedules](/docs/schedules) — send proactive Slack messages on a cadence.
-- [Connections & channels](/docs/integrations) — the broader picture of channels and connectors.
-- [Deploy to Vercel](/docs/deploy) — ship the agent so Slack can reach it.
+- [Schedules](/docs/schedules): send proactive Slack messages on a cadence.
+- [Connections & channels](/docs/integrations): the broader picture of channels and connectors.
+- [Deploy to Vercel](/docs/deploy): ship the agent so Slack can reach it.

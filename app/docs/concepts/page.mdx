@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "The agent, explained — Eve Studio Docs",
+  title: "The agent, explained · Eve Studio Docs",
   description:
     "The mental model behind every Studio tab: an Eve agent is a folder, and the filesystem is the interface.",
 };
@@ -47,67 +47,67 @@ Add a file and Eve discovers it; rename or move it and its identity moves with i
 
 ## Each subdirectory's role
 
-### `instructions.md` — the always-on system prompt
+### `instructions.md`: the always-on system prompt
 
 The agent's permanent identity: persona, tone, and standing rules that hold on **every** turn. Eve prepends it to every model call. Keep it short and stable; situational procedures belong in skills, not here. A static prompt is markdown; swap to `instructions.ts` when you need to build the prompt from code.
 
 → [Instructions & model](/docs/instructions)
 
-### `agent.ts` — model and runtime config
+### `agent.ts`: model and runtime config
 
 Calls `defineAgent` to choose the model and tune the runtime (reasoning effort, compaction, token limits). If it's absent, Eve uses its default source configured with `openai/gpt-5.6-luna-fast`; when present, `model` is required.
 
 → [Instructions & model](/docs/instructions)
 
-### `tools/` — typed actions
+### `tools/`: typed actions
 
 One `defineTool` per file. Each tool has a Zod `inputSchema` and an `execute` function, and runs in the **app runtime** with full `process.env` (not in the sandbox). A tool can be gated behind human approval for sensitive or irreversible actions.
 
 → [Tools, skills & subagents](/docs/capabilities)
 
-### `skills/` — load-on-demand instructions
+### `skills/`: load-on-demand instructions
 
 A skill is a procedure the model pulls into context only when a turn calls for it: progressive disclosure, not always-on. Each lives at `skills/<name>/SKILL.md` with a `description` Eve uses to route to it, plus optional `references/` files.
 
 → [Tools, skills & subagents](/docs/capabilities)
 
-### `subagents/` — specialist child agents
+### `subagents/`: specialist child agents
 
 A subagent under `subagents/<id>/` is its own agent root: its own `agent.ts` (with a required `description`), `instructions.md`, and its own `tools/`, `skills/`, `hooks/`, `memory/`, and `extensions/`. It inherits nothing from the root, so the parent can hand off work to a specialist with a narrower, purpose-built surface.
 
 → [Tools, skills & subagents](/docs/capabilities)
 
-### `hooks/` — observe the event stream
+### `hooks/`: observe the event stream
 
 A hook subscribes to runtime stream events (`session.started`, `action.result`, `message.completed`, …) and runs side effects after each event is durably recorded: audit logging, metrics, alerting. Hooks are observe-only; they cannot inject model context.
 
 → [Hooks](/docs/hooks)
 
-### `connections/` — external tools
+### `connections/`: external tools
 
 A connection wires the agent into an external MCP server or an OpenAPI service you don't author. Eve discovers the remote tools, surfaces them to the model, and brokers auth; the model never sees the connection's URL or credentials. Tools are called by a qualified name like `linear__list_issues`.
 
 → [Integrations](/docs/integrations)
 
-### `channels/` — where the agent is surfaced
+### `channels/`: where the agent is surfaced
 
 A channel is the edge adapter between a platform and the agent: it normalizes inbound messages, owns the conversation's address, and decides delivery. Every app ships the built-in HTTP channel (`agent/channels/eve.ts`); add Slack, Discord, or a custom channel to reach the agent elsewhere.
 
 → [Integrations](/docs/integrations)
 
-### `schedules/` — cron-driven jobs
+### `schedules/`: cron-driven jobs
 
 A schedule starts the agent on its own clock instead of waiting for a message: daily digests, syncs, heartbeats. Each is one file under `schedules/` carrying a cron expression. On Vercel each becomes a Cron Job evaluated in **UTC**. Schedules are root-only; subagents can't have them.
 
 → [Schedules](/docs/schedules)
 
-### `memory/` — long-term memory slots
+### `memory/`: long-term memory slots
 
 A memory slot gives the agent context that outlives a session. Each file under `memory/` declares one slot with `defineMemory`: a provider (Eve's built-in file memory, Supermemory, or your own) and a scope that decides whose memory it is. Eve recalls from the slot before each turn and lets the provider capture after it.
 
 → [Memory](/docs/memory)
 
-### `extensions/` — mounted packages
+### `extensions/`: mounted packages
 
 An extension is an npm package shaped like an agent folder. A file under `extensions/` mounts it, and everything it ships (tools, connections, skills, instructions, subagents) joins the agent under a namespace prefix. Kybernesis Arcana, the long-term memory integration, mounts this way.
 
@@ -142,8 +142,8 @@ Every editor in these tabs opens the underlying file. Nothing about the agent is
 
 ## Where to go next
 
-- **[Instructions & model](/docs/instructions)** — the system prompt and `agent.ts`.
-- **[Tools, skills & subagents](/docs/capabilities)** — the three ways to give the agent capabilities.
-- **[Hooks](/docs/hooks)** — observe the runtime event stream.
-- **[Integrations](/docs/integrations)** — connections, channels, and the registry.
-- **[Create an agent](/docs/create-agent)** — scaffold the folder for the first time.
+- **[Instructions & model](/docs/instructions)**: the system prompt and `agent.ts`.
+- **[Tools, skills & subagents](/docs/capabilities)**: the three ways to give the agent capabilities.
+- **[Hooks](/docs/hooks)**: observe the runtime event stream.
+- **[Integrations](/docs/integrations)**: connections, channels, and the registry.
+- **[Create an agent](/docs/create-agent)**: scaffold the folder for the first time.

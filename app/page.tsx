@@ -162,19 +162,19 @@ const FEATURES = [
   {
     icon: IconWrench,
     title: "Every capability, editable",
-    body: "Browse tools, skills, subagents, and hooks — then open, edit, and delete their source in-app. Instructions, model (via eve set), connections, channels, and schedules too. Flip on Eve's self-modification subagent when you want the agent to edit itself.",
+    body: "Browse tools, skills, subagents, and hooks, then open, edit, and delete their source in-app. Instructions, model (via eve set), connections, channels, and schedules too. Flip on Eve's self-modification subagent when you want the agent to edit itself.",
     wide: true,
   },
   {
     icon: IconBrain,
     title: "Long-term memory",
-    body: "Kybernesis Arcana is an official eve integration. Studio installs it as an extension, wires the key locally and on Vercel, and opens a brain browser. Eve's own memory slots — file memory or Supermemory — sit alongside it.",
+    body: "Kybernesis Arcana is an official eve integration. Studio installs it as an extension, wires the key locally and on Vercel, and opens a brain browser. Eve's own memory slots (file memory or Supermemory) sit alongside it.",
     wide: true,
   },
   {
     icon: IconPlug,
     title: "Registry integrations",
-    body: "Browse the official eve registry in-app — channels, connections, extensions, memory providers, instrumentation — and install any of it with eve add. Guided wizards remain for Slack, Discord, Telegram, Teams, Twilio, GitHub, Linear, and Buzz.",
+    body: "Browse the official eve registry in-app (channels, connections, extensions, memory providers, instrumentation) and install any of it with eve add. Guided wizards remain for Slack, Discord, Telegram, Teams, Twilio, GitHub, Linear, and Buzz.",
     wide: true,
   },
   {
@@ -185,12 +185,12 @@ const FEATURES = [
   {
     icon: IconTerminal,
     title: "Terminal-free onboarding",
-    body: "Provisions Node 24, installs Eve, and signs you into Vercel automatically. A non-technical operator never has to open a terminal — ever.",
+    body: "Provisions Node 24, installs Eve, and signs you into Vercel automatically. A non-technical operator never has to open a terminal. Ever.",
   },
   {
     icon: IconLink,
     title: "Channels, including Buzz",
-    body: "Put the agent in Slack, Discord, Teams, Telegram, or Twilio — or give it its own identity in Buzz, Block's agent-native team chat, with a bridge that keeps listening while Studio is closed.",
+    body: "Put the agent in Slack, Discord, Teams, Telegram, or Twilio, or give it its own identity in Buzz, Block's agent-native team chat, with a bridge that keeps listening while Studio is closed.",
   },
   {
     icon: IconWorkflow,
@@ -202,7 +202,7 @@ const FEATURES = [
 const STEPS = [
   { n: "01", t: "Install", d: "Download the signed, notarized app. Opens with no Gatekeeper warning." },
   { n: "02", t: "Create an agent", d: "The app provisions a Node runtime and scaffolds a fresh Eve agent." },
-  { n: "03", t: "Connect Vercel", d: "Sign in and link — the AI Gateway token is pulled for you." },
+  { n: "03", t: "Connect Vercel", d: "Sign in and link. The AI Gateway token is pulled for you." },
   { n: "04", t: "Chat & ship", d: "Talk to your agent, edit its capabilities, and deploy to production." },
 ];
 
@@ -279,7 +279,7 @@ export default function Home() {
           <UnofficialBadge className="mb-6" />
           <p className="kicker mb-5">Desktop control center for Eve agents</p>
           <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-            Operate every Eve agent —<br className="hidden sm:block" /> without the terminal.
+            Build, deploy and operate<br className="hidden sm:block" /> every Eve agent, without the terminal.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-pretty text-[16px] leading-relaxed text-muted sm:text-[17px]">
             Eve Studio is a native macOS app to run, chat with, build, wire up, and
@@ -287,7 +287,7 @@ export default function Home() {
             <a href={EVE} className="text-foreground underline decoration-border-strong underline-offset-4 hover:decoration-foreground">
               Eve
             </a>{" "}
-            agents. Create an agent, connect Vercel, and go — it provisions
+            agents. Create an agent, connect Vercel, and go. It provisions
             everything for you.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -309,7 +309,7 @@ export default function Home() {
             </div>
             <Image
               src="/shots/chat.png"
-              alt="Eve Studio — chatting with an agent"
+              alt="Eve Studio chatting with an agent"
               width={2884}
               height={1978}
               className="h-auto w-full"
@@ -319,7 +319,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Memory — long-term memory with Arcana, plus the eve registry */}
+      {/* Memory: long-term memory with Arcana, plus the eve registry */}
       <section id="memory" className="border-t border-border">
         <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
           <div className="flex items-center gap-2.5">
@@ -329,7 +329,7 @@ export default function Home() {
             <p className="kicker">Long-term memory</p>
           </div>
           <h2 className="mt-5 max-w-3xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            An agent that remembers — across sessions, channels, and deploys.
+            An agent that remembers across sessions, channels, and deploys.
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
             Eve gives every agent durable sessions and memory slots. Kybernesis
@@ -375,8 +375,8 @@ export default function Home() {
                 Browse the brain
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
-                Stats, a timeline of what the agent remembered — in Studio, on
-                Slack, on a schedule — and search, reading the same workspace
+                Stats, a timeline of what the agent remembered (in Studio, on
+                Slack, on a schedule), and search, reading the same workspace
                 the agent writes. Give a subagent its own brain with a separate
                 mount.
               </p>
@@ -388,8 +388,8 @@ export default function Home() {
               Add any integration from the eve registry.
             </span>{" "}
             Arcana is one of many official items. Studio&apos;s Integrations tab
-            lists the whole catalog — channels, connections, extensions, memory
-            providers, instrumentation — with search and one-click install
+            lists the whole catalog (channels, connections, extensions, memory
+            providers, instrumentation) with search and one-click install
             through <code className="font-mono text-[12.5px]">eve add</code>.
             Guided wizards stay for Slack, Discord, Telegram, Teams, Twilio,
             GitHub, Linear, and Buzz.{" "}
@@ -429,16 +429,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Built on Eve — architecture primer for newcomers */}
+      {/* Built on Eve: architecture primer for newcomers */}
       <section id="eve" className="border-t border-border">
         <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
           <p className="kicker mb-3">New to Eve?</p>
           <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-            Built on Eve — the framework for agents.
+            Built on Eve, the framework for agents.
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
             An Eve agent is a folder. Eve gives it a durable runtime, tools,
-            subagents, and memory — then surfaces it across channels, all managed
+            subagents, and memory, then surfaces it across channels, all managed
             on Vercel. Eve Studio is the app for operating it.
           </p>
 
@@ -501,7 +501,7 @@ export default function Home() {
           </div>
 
           <p className="mt-6 text-center text-[13.5px] leading-relaxed text-muted">
-            Fully managed via Vercel — sandboxes, durable workflows, model routing,
+            Fully managed via Vercel: sandboxes, durable workflows, model routing,
             and observability handled for you.
           </p>
         </div>

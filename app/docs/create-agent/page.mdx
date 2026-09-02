@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Create an agent — Eve Studio Docs",
+  title: "Create an agent · Eve Studio Docs",
   description:
     "Scaffold a new Eve agent from Studio with the ＋ flow, pick its model, or register one you already have with Add existing.",
 };
@@ -12,9 +12,9 @@ An [Eve](https://eve.dev) agent is a folder. Studio can scaffold a fresh one for
 
 Click **＋** at the top of the left rail. Studio asks for:
 
-- **A name** — becomes the agent's folder and how it's listed in the rail.
-- **A model (optional)** — the AI Gateway model id the agent starts on. Leave it blank for Eve's default, `openai/gpt-5.6-luna-fast`. You can change it any time from the [Model view](/docs/instructions).
-- **Web Chat (optional)** — check this to include the Web Chat application, so the agent ships a browser chat UI alongside the built-in HTTP channel. Leave it off for a headless agent you'll reach over HTTP or a platform channel. You can add Web Chat later from Integrations with `eve add channel/web`.
+- **A name**: becomes the agent's folder and how it's listed in the rail.
+- **A model (optional)**: the AI Gateway model id the agent starts on. Leave it blank for Eve's default, `openai/gpt-5.6-luna-fast`. You can change it any time from the [Model view](/docs/instructions).
+- **Web Chat (optional)**: check this to include the Web Chat application, so the agent ships a browser chat UI alongside the built-in HTTP channel. Leave it off for a headless agent you'll reach over HTTP or a platform channel. You can add Web Chat later from Integrations with `eve add channel/web`.
 
 When you confirm, Studio runs `eve init <name>` on the provisioned Node 24 runtime and streams a **live log** as it works. You watch the scaffold, dependency install, and Git init happen in order, with a "working…" spinner and an elapsed timer.
 
@@ -54,6 +54,6 @@ If you built an agent elsewhere (cloned a repo, scaffolded with the Eve CLI, or 
 
 ## Next
 
-- **[Connect to Vercel](/docs/connect-vercel)** — give the agent a model credential so it can reply.
-- **[The workspace](/docs/workspace)** — the rail, header, and tabs you'll use to build it out.
-- **[Chat](/docs/chat)** — start talking to your new agent.
+- **[Connect to Vercel](/docs/connect-vercel)**: give the agent a model credential so it can reply.
+- **[The workspace](/docs/workspace)**: the rail, header, and tabs you'll use to build it out.
+- **[Chat](/docs/chat)**: start talking to your new agent.

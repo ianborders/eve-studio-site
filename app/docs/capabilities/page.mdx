@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Tools, skills & subagents — Eve Studio Docs",
+  title: "Tools, skills & subagents · Eve Studio Docs",
   description:
     "The three ways to give an Eve agent capabilities, how to create, edit, and delete each in Studio's Capabilities tab, and how to enable self-modification.",
 };
@@ -8,9 +8,9 @@ export const metadata = {
 
 Instructions and the model decide how an agent thinks. Capabilities decide what it can *do*. Eve gives you three, each with a different job:
 
-- **Tools** — typed actions the agent calls (hit an API, run a query, write a file).
-- **Skills** — load-on-demand instructions the model pulls in only when relevant.
-- **Subagents** — specialist child agents the root agent delegates work to.
+- **Tools**: typed actions the agent calls (hit an API, run a query, write a file).
+- **Skills**: load-on-demand instructions the model pulls in only when relevant.
+- **Subagents**: specialist child agents the root agent delegates work to.
 
 Studio groups all three (plus [Hooks](/docs/hooks)) under the **Capabilities** tab, with a sub-tab for each. Every sub-tab lists the discovered items, a **New** button to scaffold one, and an in-app editor that opens the real source file when you click a row. Nothing is stored in a Studio database; the files under `agent/` *are* the capabilities.
 
@@ -39,10 +39,10 @@ export default defineTool({
 
 A tool definition needs:
 
-- **a filename slug** under `agent/tools/` — the model-facing name (snake_case ASCII).
-- **`description`** — what the tool does, written for the model.
-- **`inputSchema`** — a Zod schema (or any Standard/JSON Schema). Use `z.object({})` for no input.
-- **`execute(input, ctx)`** — the implementation, sync or async.
+- **a filename slug** under `agent/tools/`: the model-facing name (snake_case ASCII).
+- **`description`**: what the tool does, written for the model.
+- **`inputSchema`**: a Zod schema (or any Standard/JSON Schema). Use `z.object({})` for no input.
+- **`execute(input, ctx)`**: the implementation, sync or async.
 
 ### Approval: human-in-the-loop
 
@@ -75,7 +75,7 @@ When a gated tool is called, the run **parks durably** and Studio's Chat surface
 
 **Capabilities → Tools.** The sub-tab lists every discovered tool. Click **New** to scaffold a tool file in `agent/tools/`. Click any row to open the **in-app editor**, a modal over that tool's `.ts` source, where you read, edit, and **Save**, or **Delete** the file.
 
-Agents set up with an earlier Studio may still carry files from the retired Evolve feature, such as `agent/tools/propose_change.ts`. Studio badges these **legacy Eve Studio (Evolve) tool — safe to delete**; open the row and **Delete** to remove them.
+Agents set up with an earlier Studio may still carry files from the retired Evolve feature, such as `agent/tools/propose_change.ts`. Studio badges these **legacy Eve Studio (Evolve) tool, safe to delete**; open the row and **Delete** to remove them.
 
 ## Skills
 
@@ -113,7 +113,7 @@ A subagent is a specialist child agent the root delegates to. Use one to run ind
 
 ```
 agent/subagents/research/
-├── agent.ts            # required — must export a description
+├── agent.ts            # required: must export a description
 ├── instructions.md     # optional, its own system prompt
 ├── tools/              # optional, its own tools
 ├── skills/             # optional, its own skills
@@ -161,7 +161,7 @@ The fourth Capabilities sub-tab is **Hooks**: observe-only subscribers to the ru
 
 ## Where to go next
 
-- **[Hooks](/docs/hooks)** — react to the runtime event stream.
-- **[Integrations](/docs/integrations)** — connections, channels, and the registry.
-- **[Instructions & model](/docs/instructions)** — the always-on counterpart to skills.
-- **[The agent, explained](/docs/concepts)** — how capabilities fit the whole folder.
+- **[Hooks](/docs/hooks)**: react to the runtime event stream.
+- **[Integrations](/docs/integrations)**: connections, channels, and the registry.
+- **[Instructions & model](/docs/instructions)**: the always-on counterpart to skills.
+- **[The agent, explained](/docs/concepts)**: how capabilities fit the whole folder.

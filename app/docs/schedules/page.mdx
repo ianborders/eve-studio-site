@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Schedules — Eve Studio Docs",
+  title: "Schedules · Eve Studio Docs",
   description:
     "Cron-driven jobs that wake an Eve agent on a cadence, and how to create and manage them from Studio's Schedules tab.",
 };
@@ -68,8 +68,8 @@ Open an agent and select the **Schedules** top tab. It lists every schedule disc
 
 To add one, click **New** and provide:
 
-- **A cron expression** — the 5-field UTC schedule (for example `0 9 * * 1-5`).
-- **A markdown prompt** — the instruction that wakes the agent when the schedule fires.
+- **A cron expression**: the 5-field UTC schedule (for example `0 9 * * 1-5`).
+- **A markdown prompt**: the instruction that wakes the agent when the schedule fires.
 
 Studio writes the new `agent/schedules/*.ts` file for you and it appears in the list. As with any capability, you can click a schedule row to open the in-app editor and edit its source directly, for example to switch it to the handler form.
 
@@ -86,6 +86,6 @@ Because schedules only run on their cadence on the deployed agent, the workflow 
 
 ## Where to go next
 
-- **[Deploy to Vercel](/docs/deploy)** — ship the agent so its schedules actually fire.
-- **[Capabilities](/docs/capabilities)** — the tools and subagents a scheduled run leans on.
-- **[Connecting Slack](/docs/slack)** — deliver schedule output to Slack.
+- **[Deploy to Vercel](/docs/deploy)**: ship the agent so its schedules actually fire.
+- **[Capabilities](/docs/capabilities)**: the tools and subagents a scheduled run leans on.
+- **[Connecting Slack](/docs/slack)**: deliver schedule output to Slack.

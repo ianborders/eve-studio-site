@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Chat — Eve Studio Docs",
+  title: "Chat · Eve Studio Docs",
   description:
-    "Talk to an Eve agent from Studio — local dev server or production — with streamed tool calls, subagents, reasoning, approvals, and session controls.",
+    "Talk to an Eve agent from Studio, local dev server or production, with streamed tool calls, subagents, reasoning, approvals, and session controls.",
 };
 
 # Chat
@@ -12,8 +12,8 @@ The **Chat** tab is where you talk to an agent and watch it work. It streams eve
 
 A **Target** toggle at the top picks what you're talking to:
 
-- **Local** — the agent's local dev server (`eve dev`). This is what you use while building; it reflects your unsaved-to-production changes.
-- **Deployed** — the production deployment on Vercel. Use it to smoke-test what your users actually reach.
+- **Local**: the agent's local dev server (`eve dev`). This is what you use while building; it reflects your unsaved-to-production changes.
+- **Deployed**: the production deployment on Vercel. Use it to smoke-test what your users actually reach.
 
 For **Local**, the dev server must be running: hit **Start** in the per-agent header (see **[The workspace](/docs/workspace)**) and wait for the status pill to read *running*. The **Deployed** target needs a deployment to exist; see **[Deploy to Vercel](/docs/deploy)**.
 
@@ -21,22 +21,22 @@ For **Local**, the dev server must be running: hit **Start** in the per-agent he
 
 As the agent runs a turn, Chat renders each event live, in order:
 
-- **Turns** — the assistant's messages as they're produced.
-- **Tool calls** — each call is a **collapsible row**; expand it to see the tool's **input** and **output**. Partial output streams in while a long tool runs.
-- **Subagent delegations** — when the agent hands work to a specialist child agent, its run appears nested so you can follow the delegation.
-- **Reasoning** — a **"thinking…"** stream showing the model's reasoning before it acts.
-- **Approval prompts** — when a tool is gated for **human-in-the-loop**, the turn pauses and asks you to approve or reject before it proceeds.
-- **Compaction** — when Eve summarizes older context, Chat marks where the compaction happened.
-- **Cancellations and failures** — a cancelled turn is marked as cancelled (not an error); a failed step or turn shows Eve's error code and message. When a step, turn, and session fail in a row with the same message, Chat renders them as one row rather than three.
+- **Turns**: the assistant's messages as they're produced.
+- **Tool calls**: each call is a **collapsible row**; expand it to see the tool's **input** and **output**. Partial output streams in while a long tool runs.
+- **Subagent delegations**: when the agent hands work to a specialist child agent, its run appears nested so you can follow the delegation.
+- **Reasoning**: a **"thinking…"** stream showing the model's reasoning before it acts.
+- **Approval prompts**: when a tool is gated for **human-in-the-loop**, the turn pauses and asks you to approve or reject before it proceeds.
+- **Compaction**: when Eve summarizes older context, Chat marks where the compaction happened.
+- **Cancellations and failures**: a cancelled turn is marked as cancelled (not an error); a failed step or turn shows Eve's error code and message. When a step, turn, and session fail in a row with the same message, Chat renders them as one row rather than three.
 
 ## Session controls
 
 Next to the composer:
 
-- **Cancel turn** — stops the in-flight turn. Eve confirms it on the stream as `turn.cancelled` followed by `session.waiting`; the session accepts the next message afterward. Whatever the turn already streamed stays in the thread.
-- **Compact context** — asks Eve to summarize the session's model context now, without sending a message. Useful before a long task in a long thread.
-- **Clear context** — removes the model-message history in place. The session id, system prompt, tools, skills, durable state, and sandbox stay.
-- **Reset session** — terminally retires the session. The thread stays in your sidebar for reading; the next message starts a fresh session.
+- **Cancel turn**: stops the in-flight turn. Eve confirms it on the stream as `turn.cancelled` followed by `session.waiting`; the session accepts the next message afterward. Whatever the turn already streamed stays in the thread.
+- **Compact context**: asks Eve to summarize the session's model context now, without sending a message. Useful before a long task in a long thread.
+- **Clear context**: removes the model-message history in place. The session id, system prompt, tools, skills, durable state, and sandbox stay.
+- **Reset session**: terminally retires the session. The thread stays in your sidebar for reading; the next message starts a fresh session.
 
 ## The composer and usage bar
 
@@ -58,6 +58,6 @@ If you see a **Connect to Vercel** banner instead of a response, the agent has n
 
 ## Next
 
-- **[Connect to Vercel](/docs/connect-vercel)** — required before the model can respond.
-- **[Deploy to Vercel](/docs/deploy)** — so the **Deployed** target has something to talk to.
-- **[The agent, explained](/docs/concepts)** — what tools, subagents, and skills are under the hood.
+- **[Connect to Vercel](/docs/connect-vercel)**: required before the model can respond.
+- **[Deploy to Vercel](/docs/deploy)**: so the **Deployed** target has something to talk to.
+- **[The agent, explained](/docs/concepts)**: what tools, subagents, and skills are under the hood.

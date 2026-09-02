@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Memory — Eve Studio Docs",
+  title: "Memory · Eve Studio Docs",
   description:
-    "How an Eve agent remembers: built-in session memory, memory slots with a provider, and Kybernesis Arcana as an official eve extension for long-term memory — and how Studio's Memory tab wires each.",
+    "How an Eve agent remembers: built-in session memory, memory slots with a provider, and Kybernesis Arcana as an official eve extension for long-term memory, and how Studio's Memory tab wires each.",
 };
 
 # Memory
@@ -16,9 +16,9 @@ Every Eve conversation is a **durable session**: long-lived, survives process re
 
 Alongside history, Eve gives a session:
 
-- **Durable state** — `defineState` holds working data for one session (a plan, a counter) and dies with the session.
-- **A todo list** — the built-in `todo` tool keeps a per-session task list that survives compaction.
-- **A sandbox workspace** — files the agent writes under `/workspace` in its sandbox persist for the session.
+- **Durable state**: `defineState` holds working data for one session (a plan, a counter) and dies with the session.
+- **A todo list**: the built-in `todo` tool keeps a per-session task list that survives compaction.
+- **A sandbox workspace**: files the agent writes under `/workspace` in its sandbox persist for the session.
 
 The boundary matters: session memory remembers *within a conversation*. A new session starts fresh, and a subagent gets its own separate session. The Memory tab shows this layer for information; there's nothing to configure.
 
@@ -83,16 +83,16 @@ Because the instructions ship with the extension, you don't add a memory section
 
 Open an agent and select the **Memory** top tab. It reads the agent's compiled manifest and shows:
 
-- **Session memory** — always present, as one expandable row; open it for what Eve keeps per session.
-- **Memory slots** — every slot under `agent/memory/`, with its provider (file memory, Supermemory, or custom), scope, and the tools it exposes. **Add file memory** scaffolds `agent/memory/profile.ts` like the example above. **Add Supermemory** runs `eve add memory/supermemory --non-interactive --yes` and tells you which env var to set. Click a slot to open its source in the editor.
-- **Arcana** — whether the official extension is mounted, the workspace it points at, and which key variable is present. Studio reads the workspace from the mount file itself, so a literal string, `process.env.ARCANA_WORKSPACE`, and a fallback such as `process.env.ARCANA_WORKSPACE ?? "default"` all resolve; the key is reported by the env var the mount reads (normally `ARCANA_API_KEY`). If Arcana isn't mounted, the **Connect Arcana** flow below wires it. Agents that were wired the old way, with a hand-written MCP connection at `agent/connections/arcana.ts`, show as **legacy connection** with a **Migrate** button that installs the official extension in its place.
+- **Session memory**: always present, as one expandable row; open it for what Eve keeps per session.
+- **Memory slots**: every slot under `agent/memory/`, with its provider (file memory, Supermemory, or custom), scope, and the tools it exposes. **Add file memory** scaffolds `agent/memory/profile.ts` like the example above. **Add Supermemory** runs `eve add memory/supermemory --non-interactive --yes` and tells you which env var to set. Click a slot to open its source in the editor.
+- **Arcana**: whether the official extension is mounted, the workspace it points at, and which key variable is present. Studio reads the workspace from the mount file itself, so a literal string, `process.env.ARCANA_WORKSPACE`, and a fallback such as `process.env.ARCANA_WORKSPACE ?? "default"` all resolve; the key is reported by the env var the mount reads (normally `ARCANA_API_KEY`). If Arcana isn't mounted, the **Connect Arcana** flow below wires it. Agents that were wired the old way, with a hand-written MCP connection at `agent/connections/arcana.ts`, show as **legacy connection** with a **Migrate** button that installs the official extension in its place.
 
 ## Connecting Arcana in Studio
 
 **Connect Arcana** asks for two things:
 
-- **A workspace** — the Arcana brain this agent reads from and writes to.
-- **An API key** — the `kb_…` key that authorizes that workspace.
+- **A workspace**: the Arcana brain this agent reads from and writes to.
+- **An API key**: the `kb_…` key that authorizes that workspace.
 
 Then Studio:
 
@@ -109,15 +109,15 @@ Keep the key out of source. It lives as an environment variable, never in code.
 
 Once Arcana is connected, the Memory tab opens a **brain browser** for the workspace:
 
-- **Stats** — how many memories, entities, and notes the brain holds.
-- **Timeline** — the most recent things the agent remembered, across every surface it runs on (Studio chat, Slack, schedules).
-- **Search** — query the brain the way the agent's `arcana_search` tool does.
+- **Stats**: how many memories, entities, and notes the brain holds.
+- **Timeline**: the most recent things the agent remembered, across every surface it runs on (Studio chat, Slack, schedules).
+- **Search**: query the brain the way the agent's `arcana_search` tool does.
 
 It reads the same workspace the agent writes, so what you see is what the agent will recall.
 
 ## Where to go next
 
-- **[Integrations](/docs/integrations)** — the registry gallery that installs Arcana and other extensions.
-- **[Chat](/docs/chat)** — Compact and Clear, the session-memory controls.
-- **[The agent, explained](/docs/concepts)** — sessions, turns, and how context flows.
-- **[Deploy to Vercel](/docs/deploy)** — push memory keys to the deployed agent's environment.
+- **[Integrations](/docs/integrations)**: the registry gallery that installs Arcana and other extensions.
+- **[Chat](/docs/chat)**: Compact and Clear, the session-memory controls.
+- **[The agent, explained](/docs/concepts)**: sessions, turns, and how context flows.
+- **[Deploy to Vercel](/docs/deploy)**: push memory keys to the deployed agent's environment.

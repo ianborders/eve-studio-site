@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Hooks — Eve Studio Docs",
+  title: "Hooks · Eve Studio Docs",
   description:
     "What Eve hooks are, when to use them, and a step-by-step walkthrough for building and editing one in Eve Studio.",
 };
@@ -97,9 +97,9 @@ Hooks run *after* an event is durably recorded, so if a hook throws, the stream 
 
 Open your agent and go to **Capabilities → Hooks**.
 
-- **See them** — every discovered hook is listed with the events it subscribes to. If a new file doesn't show, hit the reload button in the tab header; Studio re-runs `eve info --json`.
-- **Create one** — click **New**, give it a name, and Studio scaffolds `agent/hooks/<name>.ts` with a `defineHook` stub.
-- **Edit or delete** — click any hook row to open the in-app editor. It opens the hook's source; edit and **Save**, or **Delete** to remove the file.
+- **See them**: every discovered hook is listed with the events it subscribes to. If a new file doesn't show, hit the reload button in the tab header; Studio re-runs `eve info --json`.
+- **Create one**: click **New**, give it a name, and Studio scaffolds `agent/hooks/<name>.ts` with a `defineHook` stub.
+- **Edit or delete**: click any hook row to open the in-app editor. It opens the hook's source; edit and **Save**, or **Delete** to remove the file.
 
 The dev server rebuilds on file changes, so a saved hook applies to the next turn.
 
@@ -161,5 +161,5 @@ export default defineHook({
 
 ## Next
 
-- [Tools, skills & subagents](/docs/capabilities) — the capabilities a hook observes.
-- [Connections & channels](/docs/integrations) — hooks can also narrow MCP connection results.
+- [Tools, skills & subagents](/docs/capabilities): the capabilities a hook observes.
+- [Connections & channels](/docs/integrations): hooks can also narrow MCP connection results.

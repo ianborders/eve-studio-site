@@ -7,9 +7,9 @@ const GITHUB = "https://github.com/KybernesisAI/eve-studio";
 const DOWNLOAD = "https://github.com/KybernesisAI/eve-studio/releases/latest";
 
 export const metadata: Metadata = {
-  title: "Docs — Eve Studio",
+  title: "Docs · Eve Studio",
   description:
-    "Documentation for Eve Studio, an independent desktop control center for Eve agents: install, create and operate agents, and every Eve concept — tools, skills, subagents, hooks, the eve registry, connections, channels, memory (Arcana), schedules, evals, and deploy.",
+    "Documentation for Eve Studio, an independent desktop control center for Eve agents: install, create and operate agents, and every Eve concept: tools, skills, subagents, hooks, the eve registry, connections, channels, memory (Arcana), schedules, evals, and deploy.",
 };
 
 export default function DocsLayout({

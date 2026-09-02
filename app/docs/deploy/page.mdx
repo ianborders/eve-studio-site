@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Deploy to Vercel — Eve Studio Docs",
+  title: "Deploy to Vercel · Eve Studio Docs",
   description:
     "Build and deploy an Eve agent to Vercel from Studio's Deploy tab with eve deploy, manage its environment, and chat against the deployed agent.",
 };
@@ -16,8 +16,8 @@ Deploying requires the agent to be **connected to Vercel**. That's the same link
 
 Open an agent and select the **Deploy** top tab. Two buttons drive the pipeline:
 
-- **Build** — runs `eve build` locally so you can catch errors before shipping.
-- **Deploy** — runs Eve's own deploy command in its non-interactive form:
+- **Build**: runs `eve build` locally so you can catch errors before shipping.
+- **Deploy**: runs Eve's own deploy command in its non-interactive form:
 
   ```bash
   eve deploy --non-interactive --yes
@@ -33,9 +33,9 @@ The header's **Deploy** button runs the same command.
 
 Near the deploy controls, the **Environment** panel manages the agent's configuration:
 
-- **Edit `.env` / `.env.local`** — the local environment files the dev server reads. Values are masked by default; flip **Show values** to reveal them, which is also required before editing. A running `eve dev` reloads the files automatically.
-- **Pull / push Vercel env vars** — sync environment variables between your machine and the linked Vercel project. Pull brings the project's variables down (this is how the AI Gateway token lands locally); push sends local values up so the deployed agent has them.
-- **Secrets** — keys like API tokens live here as environment variables, never in code. Studio writes some for you: the [Arcana](/docs/memory) key and workspace, channel credentials from the guided wizards, and variables declared by registry items you install.
+- **Edit `.env` / `.env.local`**: the local environment files the dev server reads. Values are masked by default; flip **Show values** to reveal them, which is also required before editing. A running `eve dev` reloads the files automatically.
+- **Pull / push Vercel env vars**: sync environment variables between your machine and the linked Vercel project. Pull brings the project's variables down (this is how the AI Gateway token lands locally); push sends local values up so the deployed agent has them.
+- **Secrets**: keys like API tokens live here as environment variables, never in code. Studio writes some for you: the [Arcana](/docs/memory) key and workspace, channel credentials from the guided wizards, and variables declared by registry items you install.
 
 A **Sandbox** section sits alongside: the isolated runtime the agent uses for file and command work, and whether it's Eve's default backend (Vercel Sandbox on Vercel) or one you authored in `agent/sandbox.ts`.
 
@@ -43,8 +43,8 @@ A **Sandbox** section sits alongside: the isolated runtime the agent uses for fi
 
 Once deployed, you don't need to leave Studio to try it. In the **[Chat](/docs/chat)** tab, the **Target** toggle switches between:
 
-- **Local** — the `eve dev` server on your machine.
-- **Deployed** — the production agent you just shipped.
+- **Local**: the `eve dev` server on your machine.
+- **Deployed**: the production agent you just shipped.
 
 Flip Target to **Deployed** and your messages hit the live Vercel deployment, streaming the same turns, tool calls, and approvals as local chat. Session controls (Cancel, Compact, Clear, Reset) work against the deployed agent too.
 
@@ -54,6 +54,6 @@ If your Vercel project has **Deployment Protection** enabled, the production URL
 
 ## Where to go next
 
-- **[Connect to Vercel](/docs/connect-vercel)** — the prerequisite link and AI Gateway credential.
-- **[Schedules](/docs/schedules)** — cron jobs that only run once deployed.
-- **[Troubleshooting](/docs/troubleshooting)** — deploy and connection fixes.
+- **[Connect to Vercel](/docs/connect-vercel)**: the prerequisite link and AI Gateway credential.
+- **[Schedules](/docs/schedules)**: cron jobs that only run once deployed.
+- **[Troubleshooting](/docs/troubleshooting)**: deploy and connection fixes.
